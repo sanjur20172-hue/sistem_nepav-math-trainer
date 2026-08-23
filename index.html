@@ -74,11 +74,11 @@
     font-size:.8rem;margin-bottom:6px;
   }
   .option svg{display:block;margin:0 auto}
-  input[type="text"],select{
+  select{
     width:100%;padding:12px 16px;background:rgba(255,255,255,.05);
     border:1px solid var(--border);border-radius:10px;color:var(--text);font-size:1rem;
   }
-  input:focus,select:focus{outline:none;border-color:var(--accent)}
+  select:focus{outline:none;border-color:var(--accent)}
   .stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin:20px 0}
   .stat{padding:16px;background:rgba(255,255,255,.03);border-radius:10px;text-align:center;border:1px solid var(--border)}
   .stat-value{font-size:1.8rem;font-weight:700;color:var(--accent)}
@@ -152,7 +152,7 @@
         <div class="home-card" onclick="switchTab('trainer')">
           <div class="icon">💪</div>
           <h3>Тренажёр</h3>
-          <p>Бесконечное количество задач с выбором ответа на числовой прямой.</p>
+          <p>Бесконечное количество задач на решение систем неравенств.</p>
         </div>
         <div class="home-card" onclick="switchTab('exam')">
           <div class="icon">📝</div>
@@ -162,7 +162,7 @@
         <div class="home-card" onclick="switchTab('theory')">
           <div class="icon">📘</div>
           <h3>Теория</h3>
-          <p>Правила решения линейных неравенств и систем.</p>
+          <p>Правила решения систем неравенств.</p>
         </div>
         <div class="home-card" onclick="switchTab('teacher')">
           <div class="icon">👨‍🏫</div>
@@ -178,29 +178,15 @@
     <div class="card">
       <h2 style="margin-bottom:12px">💪 Тренажёр</h2>
       <p style="color:var(--muted);margin-bottom:16px">
-        Выберите тип задачи и уровень сложности.
+        Выберите уровень сложности.
       </p>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px">
-        <div>
-          <label style="color:var(--muted);font-size:.85rem;display:block;margin-bottom:6px">Тип задачи:</label>
-          <select id="trainer-type">
-            <option value="all">Все типы (случайно)</option>
-            <option value="linear">Одно линейное неравенство</option>
-            <option value="system_segment">Система (отрезок)</option>
-            <option value="system_ray">Система (луч)</option>
-            <option value="system_empty">Система без решений</option>
-            <option value="double">Двойное неравенство</option>
-            <option value="abs">Неравенство с модулем</option>
-          </select>
-        </div>
-        <div>
-          <label style="color:var(--muted);font-size:.85rem;display:block;margin-bottom:6px">Уровень:</label>
-          <select id="trainer-diff">
-            <option value="1">Лёгкий</option>
-            <option value="2" selected>Средний</option>
-            <option value="3">Сложный</option>
-          </select>
-        </div>
+      <div style="margin-bottom:16px">
+        <label style="color:var(--muted);font-size:.85rem;display:block;margin-bottom:6px">Уровень:</label>
+        <select id="trainer-diff">
+          <option value="1">Лёгкий</option>
+          <option value="2" selected>Средний</option>
+          <option value="3">Сложный</option>
+        </select>
       </div>
       <button class="btn" id="trainer-new">🎲 Новое задание</button>
 
@@ -233,7 +219,7 @@
         <b>код результата</b>, который нужно передать преподавателю.
       </p>
       <label style="display:block;margin-bottom:10px;color:var(--muted)">Ваше имя (Фамилия Имя):</label>
-      <input type="text" id="student-name" placeholder="Иванов Иван" style="margin-bottom:16px">
+      <input type="text" id="student-name" placeholder="Иванов Иван" style="margin-bottom:16px;width:100%;padding:12px 16px;background:rgba(255,255,255,.05);border:1px solid var(--border);border-radius:10px;color:var(--text);font-size:1rem">
       <button class="btn" id="start-exam">Начать экзамен</button>
     </div>
 
@@ -269,24 +255,19 @@
   <!-- ТЕОРИЯ -->
   <div id="tab-theory" class="tab-content hidden">
     <div class="card">
-      <h2 style="margin-bottom:16px">📘 Правила решения неравенств</h2>
+      <h2 style="margin-bottom:16px">📘 Правила решения систем неравенств</h2>
       <div style="line-height:2;font-size:1.05rem">
-        <p><b>1. Линейное неравенство:</b> <span style="color:#fbbf24;font-style:italic">ax + b &gt; c</span></p>
-        <p style="color:var(--muted);padding-left:20px">
-          Переносим <span style="color:#fbbf24">b</span> вправо, делим на <span style="color:#fbbf24">a</span>.
-          Если <span style="color:#fbbf24">a &lt; 0</span> — знак неравенства меняется!
-        </p>
-        <p><b>2. Система неравенств:</b> решение — <b>пересечение</b> решений каждого.</p>
+        <p><b>1. Система неравенств:</b> решение — <b>пересечение</b> решений каждого неравенства.</p>
         <p style="color:var(--muted);padding-left:20px">
           Изображаем оба решения на одной числовой прямой, находим общую часть.
         </p>
-        <p><b>3. Двойное неравенство:</b> <span style="color:#fbbf24;font-style:italic">a &lt; f(x) &lt; b</span></p>
+        <p><b>2. Если решения не пересекаются:</b> система не имеет решений (∅).</p>
         <p style="color:var(--muted);padding-left:20px">
-          Решаем как систему: <span style="color:#fbbf24">f(x) &gt; a</span> и <span style="color:#fbbf24">f(x) &lt; b</span>.
+          Например: {x > 5, x < 3} — нет чисел, одновременно больших 5 и меньших 3.
         </p>
-        <p><b>4. Неравенство с модулем:</b> <span style="color:#fbbf24;font-style:italic">|x − a| &lt; b</span> (b &gt; 0)</p>
+        <p><b>3. Если одно неравенство следует из другого:</b> ответ — решение более строгого.</p>
         <p style="color:var(--muted);padding-left:20px">
-          Равносильно: <span style="color:#fbbf24">a − b &lt; x &lt; a + b</span>.
+          Например: {x > 2, x > 5} → x > 5.
         </p>
         <hr style="margin:20px 0;border-color:var(--border)">
         <h3 style="margin-bottom:10px">💡 Обозначения промежутков</h3>
@@ -342,11 +323,57 @@ function shuffle(arr){
   }
   return a;
 }
+
+/* Форматирование числа: целое, конечная десятичная или обыкновенная дробь */
 function fmtNum(x){
-  if(!isFinite(x)) return x > 0 ? "+∞" : "−∞";
-  if(Number.isInteger(x)) return String(x);
-  return x.toFixed(1).replace(".",",");
+  if(x === Infinity) return "+∞";
+  if(x === -Infinity) return "−∞";
+  if(!isFinite(x)) return "?";
+  if(Number.isInteger(x)) return x < 0 ? "−" + Math.abs(x) : String(x);
+  
+  const EPS = 1e-9;
+  const sign = x < 0 ? -1 : 1;
+  const absX = Math.abs(x);
+  
+  // Ищем наилучшее рациональное приближение p/q
+  let bestP = 0, bestQ = 1, bestErr = Infinity;
+  for(let q = 1; q <= 100; q++){
+    const p = Math.round(absX * q);
+    const err = Math.abs(p/q - absX);
+    if(err < bestErr){
+      bestErr = err;
+      bestP = p;
+      bestQ = q;
+    }
+    if(err < EPS) break;
+  }
+  
+  // Сокращаем дробь
+  function gcd(a, b){ return b === 0 ? a : gcd(b, a % b); }
+  const g = gcd(bestP, bestQ);
+  bestP /= g;
+  bestQ /= g;
+  
+  if(bestQ === 1) return (sign < 0 ? "−" : "") + bestP;
+  
+  // Проверяем, конечная ли десятичная (знаменатель имеет только делители 2 и 5)
+  let q = bestQ;
+  while(q % 2 === 0) q /= 2;
+  while(q % 5 === 0) q /= 5;
+  
+  if(q === 1){
+    // Конечная десятичная
+    const val = sign * bestP / bestQ;
+    let s = val.toFixed(10).replace(/\.?0+$/, "");
+    if(s.includes(".")) s = s.replace(".", ",");
+    return s;
+  } else {
+    // Обыкновенная дробь
+    const signStr = sign < 0 ? "−" : "";
+    return signStr + bestP + "/" + bestQ;
+  }
 }
+
 function intervalToStr(iv){
   if(iv.isEmpty) return "∅";
   if(iv.isAll) return "(−∞; +∞)";
@@ -357,8 +384,6 @@ function intervalToStr(iv){
 
 /* =========================================================
    ОТРИСОВКА ЧИСЛОВОЙ ПРЯМОЙ (SVG)
-   interval: {min, max, minOpen, maxOpen, isEmpty, isAll}
-   viewMin, viewMax — диапазон отображения оси
    ========================================================= */
 function drawInterval(container, interval, viewMin, viewMax){
   const W = 300, H = 60;
@@ -380,13 +405,9 @@ function drawInterval(container, interval, viewMin, viewMax){
   drawArrow(svg, 10, y, "left", "#94a3b8");
   drawArrow(svg, W-10, y, "right", "#94a3b8");
 
-  // Засечки
-  const span = viewMax - viewMin;
-  let step = 1;
-  if(span > 8) step = 2;
-  if(span > 16) step = 5;
-  let start = Math.ceil(viewMin / step) * step;
-  for(let x = start; x <= viewMax + 0.0001; x += step){
+  // Засечки (только целые числа)
+  let start = Math.ceil(viewMin);
+  for(let x = start; x <= viewMax; x++){
     const px = xToPx(x);
     if(px < 15 || px > W-15) continue;
     const tick = document.createElementNS("http://www.w3.org/2000/svg","line");
@@ -398,7 +419,7 @@ function drawInterval(container, interval, viewMin, viewMax){
     txt.setAttribute("x",px); txt.setAttribute("y",y+16);
     txt.setAttribute("text-anchor","middle");
     txt.setAttribute("fill","#94a3b8"); txt.setAttribute("font-size","10");
-    txt.textContent = fmtNum(Math.round(x*10)/10);
+    txt.textContent = String(x);
     svg.appendChild(txt);
   }
 
@@ -473,10 +494,9 @@ function drawPoint(svg, x, y, filled){
 }
 
 /* =========================================================
-   ГЕНЕРАТОР ЗАДАЧ ТРЕНАЖЁРА
+   ГЕНЕРАТОР ЗАДАЧ ТРЕНАЖЁРА (только системы неравенств)
    ========================================================= */
 function computeView(intervals){
-  // Определяем общий диапазон отображения
   let min = Infinity, max = -Infinity;
   for(const iv of intervals){
     if(iv.isEmpty || iv.isAll) continue;
@@ -486,7 +506,7 @@ function computeView(intervals){
   if(min === Infinity){ min = -3; max = 3; }
   const span = max - min;
   const pad = Math.max(1.5, span * 0.3);
-  return { viewMin: min - pad, viewMax: max + pad };
+  return { viewMin: Math.floor(min - pad), viewMax: Math.ceil(max + pad) };
 }
 
 function buildChoice(level, text, correct, distractors, explanation){
@@ -503,61 +523,12 @@ function buildChoice(level, text, correct, distractors, explanation){
   };
 }
 
-function generateTask(type, difficulty){
-  const types = type==="all"
-    ? ["linear","system_segment","system_ray","system_empty","double","abs"]
-    : [type];
-  const pick = types[randInt(0,types.length-1)];
+function generateTask(difficulty){
   const d = parseInt(difficulty);
+  const types = ["system_segment","system_ray","system_empty"];
+  const pick = types[randInt(0,types.length-1)];
 
   switch(pick){
-
-    /* ===== ОДНО ЛИНЕЙНОЕ НЕРАВЕНСТВО ===== */
-    case "linear": {
-      const aRange = d===1?[1,3]:d===2?[1,5]:[2,9];
-      let a = randInt(aRange[0], aRange[1]);
-      if(Math.random()<0.4) a = -a;
-      if(a===0) a = 1;
-      const b = randInt(d===1?-3:d===2?-5:-9, d===1?3:d===2?5:9);
-      const k = randInt(d===1?-3:d===2?-5:-9, d===1?3:d===2?5:9); // решение x = k
-      const c = a*k - b;
-      const ops = [">",">=","<","<="];
-      const op = ops[randInt(0,3)];
-
-      // Решение
-      const rhs = (c - b) / a;
-      let correct;
-      if(a > 0){
-        if(op===">") correct={min:rhs,max:Infinity,minOpen:true,maxOpen:true};
-        else if(op===">=") correct={min:rhs,max:Infinity,minOpen:false,maxOpen:true};
-        else if(op==="<") correct={min:-Infinity,max:rhs,minOpen:true,maxOpen:true};
-        else correct={min:-Infinity,max:rhs,minOpen:true,maxOpen:false};
-      } else {
-        if(op===">") correct={min:-Infinity,max:rhs,minOpen:true,maxOpen:true};
-        else if(op===">=") correct={min:-Infinity,max:rhs,minOpen:true,maxOpen:false};
-        else if(op==="<") correct={min:rhs,max:Infinity,minOpen:true,maxOpen:true};
-        else correct={min:rhs,max:Infinity,minOpen:false,maxOpen:true};
-      }
-
-      // Дистракторы
-      const d1 = {...correct, minOpen: !correct.minOpen, maxOpen: correct.maxOpen};
-      const d2 = {...correct, minOpen: correct.minOpen, maxOpen: !correct.maxOpen};
-      // Противоположное направление
-      let d3;
-      if(correct.min === -Infinity){
-        d3 = {min: rhs, max: Infinity, minOpen: !correct.maxOpen, maxOpen: true};
-      } else if(correct.max === Infinity){
-        d3 = {min: -Infinity, max: rhs, minOpen: true, maxOpen: !correct.minOpen};
-      } else {
-        d3 = {min: -rhs*2, max: rhs*2, minOpen: true, maxOpen: true};
-      }
-
-      const aStr = a===1?"":a===-1?"−":(a<0?"−"+Math.abs(a):String(a));
-      const bStr = b===0?"":(b>0?" + "+b:" − "+Math.abs(b));
-      const text = `Решите неравенство: <span class="math">${aStr}x${bStr} ${op} ${c}</span>`;
-      const explanation = `${aStr}x${bStr} ${op} ${c} → ${a>0?"":"знак меняется при делении на отрицательное число → "}x ${op===">"||op===">="?(a>0?">":"<"):(a>0?"<":">")} ${fmtNum(rhs)}`;
-      return buildChoice("Линейное неравенство", text, correct, [d1,d2,d3], explanation);
-    }
 
     /* ===== СИСТЕМА (ОТРЕЗОК) ===== */
     case "system_segment": {
@@ -581,7 +552,7 @@ function generateTask(type, difficulty){
     /* ===== СИСТЕМА (ЛУЧ) ===== */
     case "system_ray": {
       const a = randInt(d===1?-5:d===2?-9:-15, d===1?-1:d===2?-3:-5);
-      const b = randInt(a-5, a-1); // b < a
+      const b = randInt(a-5, a-1);
       const ops = [[">",">="],[">=",">"]];
       const [op1,op2] = ops[randInt(0,1)];
       const correct = {
@@ -610,68 +581,14 @@ function generateTask(type, difficulty){
       const explanation = `Нет чисел, которые одновременно больше ${a} и меньше ${b} (т.к. ${a} > ${b}). Ответ: ∅`;
       return buildChoice("Система без решений", text, correct, [d1,d2,d3], explanation);
     }
-
-    /* ===== ДВОЙНОЕ НЕРАВЕНСТВО ===== */
-    case "double": {
-      const a = randInt(d===1?1:d===2?2:3, d===1?3:d===2?5:7);
-      const b = randInt(d===1?-3:d===2?-5:-9, d===1?3:d===2?5:9);
-      const L = randInt(d===1?-5:d===2?-9:-15, d===1?-1:d===2?-3:-5);
-      const R = randInt(L+2, L + (d===1?6:d===2?10:15));
-      // a*x + b в (L; R) → x в ((L-b)/a; (R-b)/a)
-      const left = (L - b) / a;
-      const right = (R - b) / a;
-      const correct = {min:left, max:right, minOpen:true, maxOpen:true};
-      const d1 = {min:left, max:right, minOpen:false, maxOpen:false};
-      const d2 = {min:-Infinity, max:right, minOpen:true, maxOpen:true};
-      const d3 = {min:left, max:Infinity, minOpen:true, maxOpen:true};
-
-      const aStr = a===1?"":String(a);
-      const bStr = b===0?"":(b>0?" + "+b:" − "+Math.abs(b));
-      const text = `Решите двойное неравенство:<br><span class="math">${L} &lt; ${aStr}x${bStr} &lt; ${R}</span>`;
-      const explanation = `Вычитаем ${b} из всех частей: ${L-b} &lt; ${aStr}x &lt; ${R-b}. Делим на ${a}: ${fmtNum(left)} &lt; x &lt; ${fmtNum(right)}`;
-      return buildChoice("Двойное неравенство", text, correct, [d1,d2,d3], explanation);
-    }
-
-    /* ===== НЕРАВЕНСТВО С МОДУЛЕМ ===== */
-    case "abs": {
-      const a = randInt(d===1?-3:d===2?-5:-9, d===1?3:d===2?5:9);
-      const b = randInt(d===1?1:d===2?2:3, d===1?4:d===2?7:10);
-      // |x - a| < b → x ∈ (a-b; a+b)
-      const correct = {min:a-b, max:a+b, minOpen:true, maxOpen:true};
-      const d1 = {min:a-b, max:a+b, minOpen:false, maxOpen:false};
-      const d2 = {min:a, max:a+b, minOpen:true, maxOpen:true};
-      const d3 = {min:-b, max:b, minOpen:true, maxOpen:true};
-
-      const text = `Решите неравенство: <span class="math">|x − ${a}| &lt; ${b}</span>`;
-      const explanation = `|x − ${a}| &lt; ${b} ↔ −${b} &lt; x − ${a} &lt; ${b} ↔ ${fmtNum(a-b)} &lt; x &lt; ${fmtNum(a+b)}`;
-      return buildChoice("Неравенство с модулем", text, correct, [d1,d2,d3], explanation);
-    }
   }
 }
 
 /* =========================================================
-   БАНК ЭКЗАМЕНА — 10 заданий с прогрессией сложности
+   БАНК ЭКЗАМЕНА — 10 заданий (все — системы неравенств)
    ========================================================= */
 const EXAM_TASKS = [
   {level:"Базовый",
-   text:'Решите неравенство: <span class="math">3x &gt; 9</span>',
-   intervals:[
-     {min:3,max:Infinity,minOpen:true,maxOpen:true},
-     {min:3,max:Infinity,minOpen:false,maxOpen:true},
-     {min:-Infinity,max:3,minOpen:true,maxOpen:true},
-     {min:-Infinity,max:3,minOpen:true,maxOpen:false}
-   ], correctIdx:0,
-   explanation:"3x > 9 → x > 3"},
-  {level:"Базовый",
-   text:'Решите неравенство: <span class="math">−2x ≤ 8</span>',
-   intervals:[
-     {min:-Infinity,max:-4,minOpen:true,maxOpen:false},
-     {min:-4,max:Infinity,minOpen:false,maxOpen:true},
-     {min:-Infinity,max:-4,minOpen:true,maxOpen:true},
-     {min:-Infinity,max:4,minOpen:true,maxOpen:false}
-   ], correctIdx:0,
-   explanation:"−2x ≤ 8 | делим на −2, знак меняется → x ≥ −4"},
-  {level:"Базовый+",
    text:'Решите систему: <span class="math">{ x &gt; 2,<br>&nbsp;&nbsp;x &lt; 5 }</span>',
    intervals:[
      {min:2,max:5,minOpen:true,maxOpen:true},
@@ -679,8 +596,8 @@ const EXAM_TASKS = [
      {min:2,max:Infinity,minOpen:true,maxOpen:true},
      {min:-Infinity,max:5,minOpen:true,maxOpen:true}
    ], correctIdx:0,
-   explanation:"Пересечение x > 2 и x < 2 → (2; 5)"},
-  {level:"Средний",
+   explanation:"Пересечение x > 2 и x < 5 → (2; 5)"},
+  {level:"Базовый",
    text:'Решите систему: <span class="math">{ x ≥ −1,<br>&nbsp;&nbsp;x ≤ 4 }</span>',
    intervals:[
      {min:-1,max:4,minOpen:false,maxOpen:false},
@@ -689,7 +606,7 @@ const EXAM_TASKS = [
      {min:-1,max:4,minOpen:true,maxOpen:false}
    ], correctIdx:0,
    explanation:"Пересечение x ≥ −1 и x ≤ 4 → [−1; 4]"},
-  {level:"Средний",
+  {level:"Базовый+",
    text:'Решите систему: <span class="math">{ x + 3 &gt; 1,<br>&nbsp;&nbsp;2x &lt; 8 }</span>',
    intervals:[
      {min:-2,max:4,minOpen:true,maxOpen:true},
@@ -698,16 +615,7 @@ const EXAM_TASKS = [
      {min:2,max:4,minOpen:true,maxOpen:true}
    ], correctIdx:0,
    explanation:"x > −2 и x < 4 → (−2; 4)"},
-  {level:"Средний+",
-   text:'Решите систему: <span class="math">{ x &gt; 5,<br>&nbsp;&nbsp;x &lt; 3 }</span>',
-   intervals:[
-     {isEmpty:true},
-     {min:3,max:5,minOpen:true,maxOpen:true},
-     {min:5,max:3,minOpen:true,maxOpen:true},
-     {isAll:true}
-   ], correctIdx:0,
-   explanation:"Нет чисел, одновременно больших 5 и меньших 3. Ответ: ∅"},
-  {level:"Повышенный",
+  {level:"Средний",
    text:'Решите систему: <span class="math">{ 2x − 1 ≥ 3,<br>&nbsp;&nbsp;x + 2 &lt; 6 }</span>',
    intervals:[
      {min:2,max:4,minOpen:false,maxOpen:true},
@@ -716,16 +624,16 @@ const EXAM_TASKS = [
      {min:1,max:4,minOpen:false,maxOpen:true}
    ], correctIdx:0,
    explanation:"2x ≥ 4 → x ≥ 2; x < 4. Пересечение: [2; 4)"},
-  {level:"Повышенный",
-   text:'Решите двойное неравенство: <span class="math">−1 &lt; 2x + 1 &lt; 5</span>',
+  {level:"Средний",
+   text:'Решите систему: <span class="math">{ x &gt; 5,<br>&nbsp;&nbsp;x &lt; 3 }</span>',
    intervals:[
-     {min:-1,max:2,minOpen:true,maxOpen:true},
-     {min:-1,max:2,minOpen:false,maxOpen:false},
-     {min:0,max:3,minOpen:true,maxOpen:true},
-     {min:-1,max:3,minOpen:true,maxOpen:true}
+     {isEmpty:true},
+     {min:3,max:5,minOpen:true,maxOpen:true},
+     {min:5,max:3,minOpen:true,maxOpen:true},
+     {isAll:true}
    ], correctIdx:0,
-   explanation:"−2 < 2x < 4 → −1 < x < 2"},
-  {level:"Высокий",
+   explanation:"Нет чисел, одновременно больших 5 и меньших 3. Ответ: ∅"},
+  {level:"Средний+",
    text:'Решите систему: <span class="math">{ 3x &gt; −6,<br>&nbsp;&nbsp;x &lt; 4,<br>&nbsp;&nbsp;x ≥ 0 }</span>',
    intervals:[
      {min:0,max:4,minOpen:false,maxOpen:true},
@@ -734,15 +642,42 @@ const EXAM_TASKS = [
      {min:0,max:4,minOpen:false,maxOpen:false}
    ], correctIdx:0,
    explanation:"x > −2, x < 4, x ≥ 0 → пересечение: [0; 4)"},
-  {level:"Олимпиадный",
-   text:'Решите неравенство: <span class="math">|x − 1| &lt; 3</span>',
+  {level:"Повышенный",
+   text:'Решите систему: <span class="math">{ 3x + 1 &gt; 0,<br>&nbsp;&nbsp;2x − 3 &lt; 0 }</span>',
    intervals:[
-     {min:-2,max:4,minOpen:true,maxOpen:true},
-     {min:-2,max:4,minOpen:false,maxOpen:false},
-     {min:1,max:4,minOpen:true,maxOpen:true},
-     {min:-3,max:3,minOpen:true,maxOpen:true}
+     {min:-1/3,max:3/2,minOpen:true,maxOpen:true},
+     {min:-1/3,max:3/2,minOpen:false,maxOpen:false},
+     {min:0,max:3/2,minOpen:true,maxOpen:true},
+     {min:-1/3,max:2,minOpen:true,maxOpen:true}
    ], correctIdx:0,
-   explanation:"|x − 1| < 3 ↔ −3 < x − 1 < 3 ↔ −2 < x < 4"}
+   explanation:"x > −1/3 и x < 3/2 → (−1/3; 3/2)"},
+  {level:"Повышенный",
+   text:'Решите систему: <span class="math">{ 5x − 2 ≤ 3,<br>&nbsp;&nbsp;3x + 1 &gt; −2 }</span>',
+   intervals:[
+     {min:-1,max:1,minOpen:true,maxOpen:false},
+     {min:-1,max:1,minOpen:true,maxOpen:true},
+     {min:-1,max:1,minOpen:false,maxOpen:false},
+     {min:0,max:1,minOpen:true,maxOpen:false}
+   ], correctIdx:0,
+   explanation:"x ≤ 1 и x > −1 → (−1; 1]"},
+  {level:"Высокий",
+   text:'Решите систему: <span class="math">{ 4x + 3 &lt; 7,<br>&nbsp;&nbsp;6x − 1 ≥ −7 }</span>',
+   intervals:[
+     {min:-1,max:1,minOpen:false,maxOpen:true},
+     {min:-1,max:1,minOpen:true,maxOpen:true},
+     {min:-1,max:1,minOpen:false,maxOpen:false},
+     {min:0,max:1,minOpen:false,maxOpen:true}
+   ], correctIdx:0,
+   explanation:"x < 1 и x ≥ −1 → [−1; 1)"},
+  {level:"Олимпиадный",
+   text:'Решите систему: <span class="math">{ 2x/3 − 1/2 &gt; 0,<br>&nbsp;&nbsp;5x/4 + 1 &lt; 3 }</span>',
+   intervals:[
+     {min:3/4,max:8/5,minOpen:true,maxOpen:true},
+     {min:3/4,max:8/5,minOpen:false,maxOpen:false},
+     {min:1,max:2,minOpen:true,maxOpen:true},
+     {min:3/4,max:2,minOpen:true,maxOpen:true}
+   ], correctIdx:0,
+   explanation:"x > 3/4 и x < 8/5 → (3/4; 8/5)"}
 ];
 
 /* =========================================================
@@ -784,7 +719,7 @@ function renderOptions(container, task, prefix){
     opt.dataset.idx = i;
     const label = document.createElement("div");
     label.className = "option-label";
-    label.textContent = String.fromCharCode(65+i); // A, B, C, D
+    label.textContent = String.fromCharCode(65+i);
     opt.appendChild(label);
     const ivBox = document.createElement("div");
     drawInterval(ivBox, iv, task.view.viewMin, task.view.viewMax);
@@ -794,7 +729,7 @@ function renderOptions(container, task, prefix){
     str.textContent = intervalToStr(iv);
     opt.appendChild(str);
     opt.addEventListener("click",()=>{
-      if(trainerLocked || examState.locked && prefix==="exam") return;
+      if(trainerLocked || (prefix==="exam" && examState.locked)) return;
       wrap.querySelectorAll(".option").forEach(x=>x.classList.remove("selected"));
       opt.classList.add("selected");
     });
@@ -804,9 +739,8 @@ function renderOptions(container, task, prefix){
 }
 
 function renderTrainerTask(){
-  const type = document.getElementById("trainer-type").value;
   const diff = document.getElementById("trainer-diff").value;
-  currentTrainerTask = generateTask(type, diff);
+  currentTrainerTask = generateTask(diff);
   trainerLocked = false;
 
   document.getElementById("trainer-task").classList.remove("hidden");
@@ -874,7 +808,6 @@ function renderExamTask(){
   document.getElementById("btn-next").classList.add("hidden");
   examState.locked = false;
 
-  // Для экзамена используем общий view
   const view = computeView(t.intervals);
   const taskForRender = {...t, view};
   renderOptions(document.getElementById("task-input"), taskForRender, "exam");
