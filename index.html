@@ -74,11 +74,11 @@
     font-size:.8rem;margin-bottom:6px;
   }
   .option svg{display:block;margin:0 auto}
-  select{
+  select,input[type="text"]{
     width:100%;padding:12px 16px;background:rgba(255,255,255,.05);
     border:1px solid var(--border);border-radius:10px;color:var(--text);font-size:1rem;
   }
-  select:focus{outline:none;border-color:var(--accent)}
+  input:focus,select:focus{outline:none;border-color:var(--accent)}
   .stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin:20px 0}
   .stat{padding:16px;background:rgba(255,255,255,.03);border-radius:10px;text-align:center;border:1px solid var(--border)}
   .stat-value{font-size:1.8rem;font-weight:700;color:var(--accent)}
@@ -219,7 +219,7 @@
         <b>код результата</b>, который нужно передать преподавателю.
       </p>
       <label style="display:block;margin-bottom:10px;color:var(--muted)">Ваше имя (Фамилия Имя):</label>
-      <input type="text" id="student-name" placeholder="Иванов Иван" style="margin-bottom:16px;width:100%;padding:12px 16px;background:rgba(255,255,255,.05);border:1px solid var(--border);border-radius:10px;color:var(--text);font-size:1rem">
+      <input type="text" id="student-name" placeholder="Иванов Иван" style="margin-bottom:16px">
       <button class="btn" id="start-exam">Начать экзамен</button>
     </div>
 
@@ -315,13 +315,24 @@
    УТИЛИТЫ
    ========================================================= */
 function randInt(min,max){return Math.floor(Math.random()*(max-min+1))+min}
-function shuffle(arr){
-  const a=arr.slice();
-  for(let i=a.length-1;i>0;i--){
-    const j=Math.floor(Math.random()*(i+1));
-    [a[i],a[j]]=[a[j],a[i]];
-  }
-  return a;
+
+/* УЛУЧШЕННАЯ функция перемешивания с гарантией, что правильный ответ не на позиции 0 */
+function shuffleWithCorrect(arr, correctIdx){
+  const a = arr.slice();
+  let attempts = 0;
+  do {
+    // Алгоритм Фишера-Йетса
+    for(let i = a.length - 1; i > 0; i--){
+      const j = Math.floor(Math.random() * (i + 1));
+      [a[i], a[j]] = [a[j], a[i]];
+    }
+    // Находим новую позицию правильного ответа
+    correctIdx = a.findIndex(item => item.isCorrect);
+    attempts++;
+    // Если правильный ответ снова на позиции 0, перемешиваем ещё раз (до 10 попыток)
+  } while(correctIdx === 0 && attempts < 10);
+  
+  return {shuffled: a, newCorrectIdx: correctIdx};
 }
 
 /* Форматирование числа: целое, конечная десятичная или обыкновенная дробь */
@@ -335,7 +346,6 @@ function fmtNum(x){
   const sign = x < 0 ? -1 : 1;
   const absX = Math.abs(x);
   
-  // Ищем наилучшее рациональное приближение p/q
   let bestP = 0, bestQ = 1, bestErr = Infinity;
   for(let q = 1; q <= 100; q++){
     const p = Math.round(absX * q);
@@ -348,7 +358,6 @@ function fmtNum(x){
     if(err < EPS) break;
   }
   
-  // Сокращаем дробь
   function gcd(a, b){ return b === 0 ? a : gcd(b, a % b); }
   const g = gcd(bestP, bestQ);
   bestP /= g;
@@ -356,19 +365,16 @@ function fmtNum(x){
   
   if(bestQ === 1) return (sign < 0 ? "−" : "") + bestP;
   
-  // Проверяем, конечная ли десятичная (знаменатель имеет только делители 2 и 5)
   let q = bestQ;
   while(q % 2 === 0) q /= 2;
   while(q % 5 === 0) q /= 5;
   
   if(q === 1){
-    // Конечная десятичная
     const val = sign * bestP / bestQ;
     let s = val.toFixed(10).replace(/\.?0+$/, "");
     if(s.includes(".")) s = s.replace(".", ",");
     return s;
   } else {
-    // Обыкновенная дробь
     const signStr = sign < 0 ? "−" : "";
     return signStr + bestP + "/" + bestQ;
   }
@@ -396,7 +402,6 @@ function drawInterval(container, interval, viewMin, viewMax){
   const xToPx = (x) => 25 + (x - viewMin) / (viewMax - viewMin) * (W - 50);
   const y = 30;
 
-  // Ось
   const axis = document.createElementNS("http://www.w3.org/2000/svg","line");
   axis.setAttribute("x1",10); axis.setAttribute("y1",y);
   axis.setAttribute("x2",W-10); axis.setAttribute("y2",y);
@@ -405,7 +410,6 @@ function drawInterval(container, interval, viewMin, viewMax){
   drawArrow(svg, 10, y, "left", "#94a3b8");
   drawArrow(svg, W-10, y, "right", "#94a3b8");
 
-  // Засечки (только целые числа)
   let start = Math.ceil(viewMin);
   for(let x = start; x <= viewMax; x++){
     const px = xToPx(x);
@@ -423,7 +427,6 @@ function drawInterval(container, interval, viewMin, viewMax){
     svg.appendChild(txt);
   }
 
-  // Пустое множество
   if(interval.isEmpty){
     const txt = document.createElementNS("http://www.w3.org/2000/svg","text");
     txt.setAttribute("x", W/2); txt.setAttribute("y", 18);
@@ -436,7 +439,6 @@ function drawInterval(container, interval, viewMin, viewMax){
     return;
   }
 
-  // Вся ось
   if(interval.isAll){
     const line = document.createElementNS("http://www.w3.org/2000/svg","line");
     line.setAttribute("x1",10); line.setAttribute("y1",y);
@@ -447,7 +449,6 @@ function drawInterval(container, interval, viewMin, viewMax){
     return;
   }
 
-  // Обычный промежуток
   let x1, x2;
   if(interval.min === -Infinity){
     x1 = 10;
@@ -494,7 +495,7 @@ function drawPoint(svg, x, y, filled){
 }
 
 /* =========================================================
-   ГЕНЕРАТОР ЗАДАЧ ТРЕНАЖЁРА (только системы неравенств)
+   ГЕНЕРАТОР ЗАДАЧ ТРЕНАЖЁРА
    ========================================================= */
 function computeView(intervals){
   let min = Infinity, max = -Infinity;
@@ -510,14 +511,19 @@ function computeView(intervals){
 }
 
 function buildChoice(level, text, correct, distractors, explanation){
-  const all = [correct, ...distractors];
-  const view = computeView(all);
-  const shuffled = shuffle(all.map((iv,idx)=>({iv, isCorrect: idx===0})));
-  const correctIdx = shuffled.findIndex(o=>o.isCorrect);
+  const all = [
+    {iv: correct, isCorrect: true},
+    ...distractors.map(d => ({iv: d, isCorrect: false}))
+  ];
+  const view = computeView(all.map(o => o.iv));
+  
+  // ИСПРАВЛЕНО: используем shuffleWithCorrect
+  const {shuffled, newCorrectIdx} = shuffleWithCorrect(all, 0);
+  
   return {
     level, text,
-    intervals: shuffled.map(o=>o.iv),
-    correctIdx,
+    intervals: shuffled.map(o => o.iv),
+    correctIdx: newCorrectIdx,
     view,
     explanation
   };
@@ -530,7 +536,6 @@ function generateTask(difficulty){
 
   switch(pick){
 
-    /* ===== СИСТЕМА (ОТРЕЗОК) ===== */
     case "system_segment": {
       let a = randInt(d===1?-3:d===2?-5:-9, d===1?0:d===2?2:4);
       let b = randInt(Math.max(a+1, d===1?1:d===2?3:5), d===1?5:d===2?9:15);
@@ -549,7 +554,6 @@ function generateTask(difficulty){
       return buildChoice("Система (отрезок)", text, correct, [d1,d2,d3], explanation);
     }
 
-    /* ===== СИСТЕМА (ЛУЧ) ===== */
     case "system_ray": {
       const a = randInt(d===1?-5:d===2?-9:-15, d===1?-1:d===2?-3:-5);
       const b = randInt(a-5, a-1);
@@ -568,7 +572,6 @@ function generateTask(difficulty){
       return buildChoice("Система (луч)", text, correct, [d1,d2,d3], explanation);
     }
 
-    /* ===== СИСТЕМА БЕЗ РЕШЕНИЙ ===== */
     case "system_empty": {
       const a = randInt(d===1?0:d===2?2:5, d===1?5:d===2?9:15);
       const b = randInt(d===1?-3:d===2?-5:-9, a-1);
@@ -585,7 +588,7 @@ function generateTask(difficulty){
 }
 
 /* =========================================================
-   БАНК ЭКЗАМЕНА — 10 заданий (все — системы неравенств)
+   БАНК ЭКЗАМЕНА — 10 заданий
    ========================================================= */
 const EXAM_TASKS = [
   {level:"Базовый",
@@ -809,7 +812,17 @@ function renderExamTask(){
   examState.locked = false;
 
   const view = computeView(t.intervals);
-  const taskForRender = {...t, view};
+  
+  // ИСПРАВЛЕНО: перемешиваем варианты в экзамене
+  const all = t.intervals.map((iv,idx) => ({iv, isCorrect: idx===t.correctIdx}));
+  const {shuffled, newCorrectIdx} = shuffleWithCorrect(all, t.correctIdx);
+  
+  const taskForRender = {
+    ...t,
+    intervals: shuffled.map(o => o.iv),
+    correctIdx: newCorrectIdx,
+    view
+  };
   renderOptions(document.getElementById("task-input"), taskForRender, "exam");
 }
 
@@ -819,12 +832,15 @@ document.getElementById("btn-check").addEventListener("click",()=>{
   const sel = document.querySelector("#task-input .option.selected");
   if(!sel){ alert("Выберите вариант ответа"); return; }
   const userAnswer = parseInt(sel.dataset.idx);
-  const isCorrect = userAnswer===t.correctIdx;
-  const correctAnswer = intervalToStr(t.intervals[t.correctIdx]);
-  const userAnswerStr = intervalToStr(t.intervals[userAnswer]);
+  
+  // Получаем текущий correctIdx из DOM (он мог измениться после перемешивания)
+  const currentTask = examState.currentTask;
+  const isCorrect = userAnswer === currentTask.correctIdx;
+  const correctAnswer = intervalToStr(currentTask.intervals[currentTask.correctIdx]);
+  const userAnswerStr = intervalToStr(currentTask.intervals[userAnswer]);
 
   document.querySelectorAll("#task-input .option").forEach((o,i)=>{
-    if(i===t.correctIdx) o.classList.add("correct");
+    if(i===currentTask.correctIdx) o.classList.add("correct");
     else if(i===userAnswer && !isCorrect) o.classList.add("wrong");
   });
 
