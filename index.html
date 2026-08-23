@@ -45,6 +45,7 @@
     color:#fff;font-size:1rem;font-weight:600;cursor:pointer;transition:.2s;
   }
   .btn:hover{transform:translateY(-2px);box-shadow:0 8px 20px rgba(59,130,246,.35)}
+  .btn:disabled{opacity:.5;cursor:not-allowed;transform:none}
   .btn-secondary{background:transparent;border:1px solid var(--border)}
   .btn-secondary:hover{background:rgba(255,255,255,.05)}
   .progress{height:8px;background:var(--border);border-radius:4px;overflow:hidden;margin:16px 0}
@@ -152,7 +153,7 @@
         <div class="home-card" onclick="switchTab('trainer')">
           <div class="icon">💪</div>
           <h3>Тренажёр</h3>
-          <p>Бесконечное количество задач на решение систем неравенств.</p>
+          <p>Бесконечное количество задач — от простых до олимпиадных, с дробными ответами.</p>
         </div>
         <div class="home-card" onclick="switchTab('exam')">
           <div class="icon">📝</div>
@@ -178,14 +179,14 @@
     <div class="card">
       <h2 style="margin-bottom:12px">💪 Тренажёр</h2>
       <p style="color:var(--muted);margin-bottom:16px">
-        Выберите уровень сложности.
+        Выберите уровень сложности. Включая задания с дробными ответами.
       </p>
       <div style="margin-bottom:16px">
         <label style="color:var(--muted);font-size:.85rem;display:block;margin-bottom:6px">Уровень:</label>
         <select id="trainer-diff">
-          <option value="1">Лёгкий</option>
-          <option value="2" selected>Средний</option>
-          <option value="3">Сложный</option>
+          <option value="1">Лёгкий (целые ответы)</option>
+          <option value="2" selected>Средний (линейные неравенства)</option>
+          <option value="3">Сложный (дробные ответы, 3 неравенства)</option>
         </select>
       </div>
       <button class="btn" id="trainer-new">🎲 Новое задание</button>
@@ -315,23 +316,21 @@
    УТИЛИТЫ
    ========================================================= */
 function randInt(min,max){return Math.floor(Math.random()*(max-min+1))+min}
+function gcd(a,b){a=Math.abs(a);b=Math.abs(b);while(b){[a,b]=[b,a%b]}return a}
 
-/* УЛУЧШЕННАЯ функция перемешивания с гарантией, что правильный ответ не на позиции 0 */
-function shuffleWithCorrect(arr, correctIdx){
+/* Перемешивание с гарантией, что правильный ответ не на позиции 0 */
+function shuffleWithCorrect(arr){
   const a = arr.slice();
   let attempts = 0;
+  let correctIdx;
   do {
-    // Алгоритм Фишера-Йетса
     for(let i = a.length - 1; i > 0; i--){
       const j = Math.floor(Math.random() * (i + 1));
       [a[i], a[j]] = [a[j], a[i]];
     }
-    // Находим новую позицию правильного ответа
     correctIdx = a.findIndex(item => item.isCorrect);
     attempts++;
-    // Если правильный ответ снова на позиции 0, перемешиваем ещё раз (до 10 попыток)
   } while(correctIdx === 0 && attempts < 10);
-  
   return {shuffled: a, newCorrectIdx: correctIdx};
 }
 
@@ -358,7 +357,6 @@ function fmtNum(x){
     if(err < EPS) break;
   }
   
-  function gcd(a, b){ return b === 0 ? a : gcd(b, a % b); }
   const g = gcd(bestP, bestQ);
   bestP /= g;
   bestQ /= g;
@@ -450,16 +448,10 @@ function drawInterval(container, interval, viewMin, viewMax){
   }
 
   let x1, x2;
-  if(interval.min === -Infinity){
-    x1 = 10;
-  } else {
-    x1 = xToPx(interval.min);
-  }
-  if(interval.max === Infinity){
-    x2 = W - 10;
-  } else {
-    x2 = xToPx(interval.max);
-  }
+  if(interval.min === -Infinity) x1 = 10;
+  else x1 = xToPx(interval.min);
+  if(interval.max === Infinity) x2 = W - 10;
+  else x2 = xToPx(interval.max);
 
   const line = document.createElementNS("http://www.w3.org/2000/svg","line");
   line.setAttribute("x1",x1); line.setAttribute("y1",y);
@@ -516,10 +508,7 @@ function buildChoice(level, text, correct, distractors, explanation){
     ...distractors.map(d => ({iv: d, isCorrect: false}))
   ];
   const view = computeView(all.map(o => o.iv));
-  
-  // ИСПРАВЛЕНО: используем shuffleWithCorrect
-  const {shuffled, newCorrectIdx} = shuffleWithCorrect(all, 0);
-  
+  const {shuffled, newCorrectIdx} = shuffleWithCorrect(all);
   return {
     level, text,
     intervals: shuffled.map(o => o.iv),
@@ -529,22 +518,127 @@ function buildChoice(level, text, correct, distractors, explanation){
   };
 }
 
+/* Форматирование линейного неравенства ax + b OP c */
+function formatIneq(a, b, op, c){
+  let left = "";
+  if(a === 1) left = "x";
+  else if(a === -1) left = "−x";
+  else left = (a < 0 ? "−" + Math.abs(a) : String(a)) + "x";
+  
+  if(b !== 0){
+    if(b > 0) left += " + " + b;
+    else left += " − " + Math.abs(b);
+  }
+  return left + " " + op + " " + c;
+}
+
+/* Решение неравенства ax + b OP c → интервал */
+function solveIneq(a, b, op, c){
+  // ax OP (c - b)
+  const rhs = c - b;
+  let result;
+  if(a > 0){
+    if(op === ">") result = {min:rhs/a, max:Infinity, minOpen:true, maxOpen:true};
+    else if(op === ">=") result = {min:rhs/a, max:Infinity, minOpen:false, maxOpen:true};
+    else if(op === "<") result = {min:-Infinity, max:rhs/a, minOpen:true, maxOpen:true};
+    else result = {min:-Infinity, max:rhs/a, minOpen:true, maxOpen:false};
+  } else {
+    // a < 0 — знак меняется
+    if(op === ">") result = {min:-Infinity, max:rhs/a, minOpen:true, maxOpen:true};
+    else if(op === ">=") result = {min:-Infinity, max:rhs/a, minOpen:true, maxOpen:false};
+    else if(op === "<") result = {min:rhs/a, max:Infinity, minOpen:true, maxOpen:true};
+    else result = {min:rhs/a, max:Infinity, minOpen:false, maxOpen:true};
+  }
+  return result;
+}
+
+/* Пересечение двух интервалов */
+function intersect(iv1, iv2){
+  if(iv1.isEmpty || iv2.isEmpty) return {isEmpty:true};
+  let min, max, minOpen, maxOpen;
+  if(iv1.min === -Infinity) { min = iv2.min; minOpen = iv2.minOpen; }
+  else if(iv2.min === -Infinity) { min = iv1.min; minOpen = iv1.minOpen; }
+  else if(iv1.min > iv2.min) { min = iv1.min; minOpen = iv1.minOpen; }
+  else if(iv2.min > iv1.min) { min = iv2.min; minOpen = iv2.minOpen; }
+  else { min = iv1.min; minOpen = iv1.minOpen || iv2.minOpen; }
+  
+  if(iv1.max === Infinity) { max = iv2.max; maxOpen = iv2.maxOpen; }
+  else if(iv2.max === Infinity) { max = iv1.max; maxOpen = iv1.maxOpen; }
+  else if(iv1.max < iv2.max) { max = iv1.max; maxOpen = iv1.maxOpen; }
+  else if(iv2.max < iv1.max) { max = iv2.max; maxOpen = iv2.maxOpen; }
+  else { max = iv1.max; maxOpen = iv1.maxOpen || iv2.maxOpen; }
+  
+  if(min > max) return {isEmpty:true};
+  if(min === max && (minOpen || maxOpen)) return {isEmpty:true};
+  return {min, max, minOpen, maxOpen};
+}
+
+/* Генерация линейного неравенства с заданным корнем root */
+function genIneqWithRoot(root, direction){
+  // direction: "left" → x OP root (решение — луч влево), "right" → x OP root (луч вправо)
+  // Выбираем коэффициент a (знаменатель дроби root, если он дробный)
+  const EPS = 1e-9;
+  let a;
+  // Пытаемся представить root как p/q
+  let p = Math.round(root), q = 1;
+  for(let qq = 1; qq <= 10; qq++){
+    const pp = Math.round(root * qq);
+    if(Math.abs(pp/qq - root) < EPS){ p = pp; q = qq; break; }
+  }
+  
+  // a должно быть кратно q, чтобы b было целым
+  const mult = randInt(1, 3);
+  a = q * mult;
+  if(Math.random() < 0.4) a = -a;
+  if(a === 0) a = q;
+  
+  // ax + b = 0 при x = root → b = -a * root
+  const b = Math.round(-a * root);
+  
+  let op;
+  if(direction === "right"){
+    // решение x > root или x >= root
+    if(a > 0) op = Math.random() < 0.5 ? ">" : ">=";
+    else op = Math.random() < 0.5 ? "<" : "<=";
+  } else {
+    // решение x < root или x <= root
+    if(a > 0) op = Math.random() < 0.5 ? "<" : "<=";
+    else op = Math.random() < 0.5 ? ">" : ">=";
+  }
+  
+  const c = randInt(-5, 5);
+  // ax + b OP c → ax OP (c - b)
+  // Нам нужно ax OP (c-b) давало x OP root
+  // Подберем c так, чтобы (c-b)/a = root → c = b + a*root
+  const cActual = b + a * root;
+  
+  return {a, b, op, c: Math.round(cActual)};
+}
+
 function generateTask(difficulty){
   const d = parseInt(difficulty);
-  const types = ["system_segment","system_ray","system_empty"];
-  const pick = types[randInt(0,types.length-1)];
+  
+  // В зависимости от уровня выбираем тип задачи
+  let types;
+  if(d === 1){
+    types = ["simple_segment","simple_ray","simple_empty"];
+  } else if(d === 2){
+    types = ["simple_segment","simple_ray","simple_empty","linear_segment","linear_ray","linear_empty"];
+  } else {
+    types = ["linear_segment","linear_ray","linear_empty","fractional","three_ineq"];
+  }
+  
+  const pick = types[randInt(0, types.length - 1)];
 
   switch(pick){
 
-    case "system_segment": {
-      let a = randInt(d===1?-3:d===2?-5:-9, d===1?0:d===2?2:4);
-      let b = randInt(Math.max(a+1, d===1?1:d===2?3:5), d===1?5:d===2?9:15);
+    /* ===== ПРОСТАЯ СИСТЕМА (ОТРЕЗОК) ===== */
+    case "simple_segment": {
+      let a = randInt(d===1?-3:-5, d===1?0:2);
+      let b = randInt(Math.max(a+1, d===1?1:3), d===1?5:9);
       const ops1 = [">",">="]; const ops2 = ["<","<="];
       const op1 = ops1[randInt(0,1)]; const op2 = ops2[randInt(0,1)];
-      const correct = {
-        min:a, max:b,
-        minOpen: op1===">", maxOpen: op2==="<"
-      };
+      const correct = {min:a, max:b, minOpen: op1===">", maxOpen: op2==="<"};
       const d1 = {...correct, minOpen:!correct.minOpen, maxOpen:correct.maxOpen};
       const d2 = {...correct, minOpen:correct.minOpen, maxOpen:!correct.maxOpen};
       const d3 = {min:-Infinity, max:b, minOpen:true, maxOpen:correct.maxOpen};
@@ -554,27 +648,26 @@ function generateTask(difficulty){
       return buildChoice("Система (отрезок)", text, correct, [d1,d2,d3], explanation);
     }
 
-    case "system_ray": {
-      const a = randInt(d===1?-5:d===2?-9:-15, d===1?-1:d===2?-3:-5);
+    /* ===== ПРОСТАЯ СИСТЕМА (ЛУЧ) ===== */
+    case "simple_ray": {
+      const a = randInt(d===1?-5:-9, d===1?-1:-3);
       const b = randInt(a-5, a-1);
       const ops = [[">",">="],[">=",">"]];
       const [op1,op2] = ops[randInt(0,1)];
-      const correct = {
-        min: a, max: Infinity,
-        minOpen: op1==">", maxOpen: true
-      };
+      const correct = {min: a, max: Infinity, minOpen: op1===">", maxOpen: true};
       const d1 = {...correct, minOpen: !correct.minOpen};
       const d2 = {min:-Infinity, max:a, minOpen:true, maxOpen:!correct.minOpen};
       const d3 = {min: b, max: Infinity, minOpen: true, maxOpen: true};
 
       const text = `Решите систему неравенств:<br><span class="math">{ x ${op1} ${a},<br>&nbsp;&nbsp;x ${op2} ${b} }</span>`;
-      const explanation = `Оба неравенства дают x ≥ ${a} (с учётом строгости). Ответ: ${intervalToStr(correct)}`;
+      const explanation = `Оба неравенства дают x ${op1===">"||op1===">="?">":"<"} ${a} (с учётом строгости). Ответ: ${intervalToStr(correct)}`;
       return buildChoice("Система (луч)", text, correct, [d1,d2,d3], explanation);
     }
 
-    case "system_empty": {
-      const a = randInt(d===1?0:d===2?2:5, d===1?5:d===2?9:15);
-      const b = randInt(d===1?-3:d===2?-5:-9, a-1);
+    /* ===== ПРОСТАЯ СИСТЕМА БЕЗ РЕШЕНИЙ ===== */
+    case "simple_empty": {
+      const a = randInt(d===1?0:2, d===1?5:9);
+      const b = randInt(d===1?-3:-5, a-1);
       const correct = {isEmpty:true};
       const d1 = {min:b, max:a, minOpen:true, maxOpen:true};
       const d2 = {min:a, max:b+10, minOpen:true, maxOpen:true};
@@ -583,6 +676,138 @@ function generateTask(difficulty){
       const text = `Решите систему неравенств:<br><span class="math">{ x &gt; ${a},<br>&nbsp;&nbsp;x &lt; ${b} }</span>`;
       const explanation = `Нет чисел, которые одновременно больше ${a} и меньше ${b} (т.к. ${a} > ${b}). Ответ: ∅`;
       return buildChoice("Система без решений", text, correct, [d1,d2,d3], explanation);
+    }
+
+    /* ===== ЛИНЕЙНАЯ СИСТЕМА (ОТРЕЗОК) ===== */
+    case "linear_segment": {
+      // Генерируем границы ответа
+      const a_val = randInt(-3, 2);
+      const b_val = randInt(Math.max(a_val+1, 1), 7);
+      
+      // Генерируем неравенства с этими корнями
+      const ineq1 = genIneqWithRoot(a_val, "right"); // x >= a_val
+      const ineq2 = genIneqWithRoot(b_val, "left");  // x <= b_val
+      
+      const sol1 = solveIneq(ineq1.a, ineq1.b, ineq1.op, ineq1.c);
+      const sol2 = solveIneq(ineq2.a, ineq2.b, ineq2.op, ineq2.c);
+      const correct = intersect(sol1, sol2);
+      
+      if(correct.isEmpty) return generateTask(difficulty); // перегенерировать
+      
+      // Дистракторы
+      const d1 = {...correct, minOpen: !correct.minOpen, maxOpen: correct.maxOpen};
+      const d2 = {...correct, minOpen: correct.minOpen, maxOpen: !correct.maxOpen};
+      const d3 = {min: sol1.min, max: sol2.max, minOpen: sol1.minOpen, maxOpen: sol2.maxOpen};
+
+      const text = `Решите систему неравенств:<br><span class="math">{ ${formatIneq(ineq1.a, ineq1.b, ineq1.op, ineq1.c)},<br>&nbsp;&nbsp;${formatIneq(ineq2.a, ineq2.b, ineq2.op, ineq2.c)} }</span>`;
+      const explanation = `Решаем каждое неравенство отдельно и находим пересечение. Ответ: ${intervalToStr(correct)}`;
+      return buildChoice("Линейная система (отрезок)", text, correct, [d1,d2,d3], explanation);
+    }
+
+    /* ===== ЛИНЕЙНАЯ СИСТЕМА (ЛУЧ) ===== */
+    case "linear_ray": {
+      const a_val = randInt(-7, -1);
+      const b_val = randInt(a_val - 5, a_val - 1);
+      
+      const ineq1 = genIneqWithRoot(a_val, "right");
+      const ineq2 = genIneqWithRoot(b_val, "right");
+      
+      const sol1 = solveIneq(ineq1.a, ineq1.b, ineq1.op, ineq1.c);
+      const sol2 = solveIneq(ineq2.a, ineq2.b, ineq2.op, ineq2.c);
+      const correct = intersect(sol1, sol2);
+      
+      if(correct.isEmpty || correct.max !== Infinity) return generateTask(difficulty);
+      
+      const d1 = {...correct, minOpen: !correct.minOpen};
+      const d2 = {min:-Infinity, max:correct.min, minOpen:true, maxOpen:!correct.minOpen};
+      const d3 = {min: b_val, max: Infinity, minOpen: true, maxOpen: true};
+
+      const text = `Решите систему неравенств:<br><span class="math">{ ${formatIneq(ineq1.a, ineq1.b, ineq1.op, ineq1.c)},<br>&nbsp;&nbsp;${formatIneq(ineq2.a, ineq2.b, ineq2.op, ineq2.c)} }</span>`;
+      const explanation = `Решаем каждое неравенство отдельно и находим пересечение. Ответ: ${intervalToStr(correct)}`;
+      return buildChoice("Линейная система (луч)", text, correct, [d1,d2,d3], explanation);
+    }
+
+    /* ===== ЛИНЕЙНАЯ СИСТЕМА БЕЗ РЕШЕНИЙ ===== */
+    case "linear_empty": {
+      const a_val = randInt(2, 7);
+      const b_val = randInt(-5, a_val - 1);
+      
+      const ineq1 = genIneqWithRoot(a_val, "right"); // x > a_val
+      const ineq2 = genIneqWithRoot(b_val, "left");   // x < b_val
+      
+      const sol1 = solveIneq(ineq1.a, ineq1.b, ineq1.op, ineq1.c);
+      const sol2 = solveIneq(ineq2.a, ineq2.b, ineq2.op, ineq2.c);
+      const correct = intersect(sol1, sol2);
+      
+      // Принудительно делаем пустым
+      const emptyCorrect = {isEmpty:true};
+      
+      const d1 = {min: b_val, max: a_val, minOpen:true, maxOpen:true};
+      const d2 = {min: a_val, max: b_val + 10, minOpen:true, maxOpen:true};
+      const d3 = {isAll:true};
+
+      const text = `Решите систему неравенств:<br><span class="math">{ ${formatIneq(ineq1.a, ineq1.b, ineq1.op, ineq1.c)},<br>&nbsp;&nbsp;${formatIneq(ineq2.a, ineq2.b, ineq2.op, ineq2.c)} }</span>`;
+      const explanation = `Нет чисел, удовлетворяющих обоим неравенствам одновременно. Ответ: ∅`;
+      return buildChoice("Линейная система без решений", text, emptyCorrect, [d1,d2,d3], explanation);
+    }
+
+    /* ===== СИСТЕМА С ДРОБНЫМИ ОТВЕТАМИ ===== */
+    case "fractional": {
+      // Генерируем дробные границы
+      const denominators = [2, 3, 4, 5];
+      const q1 = denominators[randInt(0, 3)];
+      const q2 = denominators[randInt(0, 3)];
+      const p1 = randInt(-5, 5);
+      const p2 = randInt(p1 + 1, p1 + 10);
+      
+      const min_val = p1 / q1;
+      const max_val = p2 / q2;
+      
+      if(min_val >= max_val) return generateTask(difficulty);
+      
+      // Генерируем неравенства
+      const ineq1 = genIneqWithRoot(min_val, "right");
+      const ineq2 = genIneqWithRoot(max_val, "left");
+      
+      const sol1 = solveIneq(ineq1.a, ineq1.b, ineq1.op, ineq1.c);
+      const sol2 = solveIneq(ineq2.a, ineq2.b, ineq2.op, ineq2.c);
+      const correct = intersect(sol1, sol2);
+      
+      if(correct.isEmpty) return generateTask(difficulty);
+      
+      const d1 = {...correct, minOpen: !correct.minOpen, maxOpen: correct.maxOpen};
+      const d2 = {...correct, minOpen: correct.minOpen, maxOpen: !correct.maxOpen};
+      const d3 = {min: Math.floor(min_val), max: Math.ceil(max_val), minOpen: true, maxOpen: true};
+
+      const text = `Решите систему неравенств:<br><span class="math">{ ${formatIneq(ineq1.a, ineq1.b, ineq1.op, ineq1.c)},<br>&nbsp;&nbsp;${formatIneq(ineq2.a, ineq2.b, ineq2.op, ineq2.c)} }</span>`;
+      const explanation = `Решаем каждое неравенство отдельно. Ответ может быть дробным. Ответ: ${intervalToStr(correct)}`;
+      return buildChoice("Система с дробным ответом", text, correct, [d1,d2,d3], explanation);
+    }
+
+    /* ===== СИСТЕМА ИЗ ТРЁХ НЕРАВЕНСТВ ===== */
+    case "three_ineq": {
+      const a_val = randInt(-3, 0);
+      const b_val = randInt(Math.max(a_val + 1, 1), 5);
+      const c_val = randInt(a_val + 1, b_val - 1);
+      
+      const ineq1 = genIneqWithRoot(a_val, "right");
+      const ineq2 = genIneqWithRoot(b_val, "left");
+      const ineq3 = genIneqWithRoot(c_val, Math.random() < 0.5 ? "right" : "left");
+      
+      const sol1 = solveIneq(ineq1.a, ineq1.b, ineq1.op, ineq1.c);
+      const sol2 = solveIneq(ineq2.a, ineq2.b, ineq2.op, ineq2.c);
+      const sol3 = solveIneq(ineq3.a, ineq3.b, ineq3.op, ineq3.c);
+      const correct = intersect(intersect(sol1, sol2), sol3);
+      
+      if(correct.isEmpty) return generateTask(difficulty);
+      
+      const d1 = {...correct, minOpen: !correct.minOpen, maxOpen: correct.maxOpen};
+      const d2 = {...correct, minOpen: correct.minOpen, maxOpen: !correct.maxOpen};
+      const d3 = intersect(sol1, sol2); // без третьего неравенства
+
+      const text = `Решите систему неравенств:<br><span class="math">{ ${formatIneq(ineq1.a, ineq1.b, ineq1.op, ineq1.c)},<br>&nbsp;&nbsp;${formatIneq(ineq2.a, ineq2.b, ineq2.op, ineq2.c)},<br>&nbsp;&nbsp;${formatIneq(ineq3.a, ineq3.b, ineq3.op, ineq3.c)} }</span>`;
+      const explanation = `Решаем каждое неравенство и находим пересечение всех трёх. Ответ: ${intervalToStr(correct)}`;
+      return buildChoice("Система из трёх неравенств", text, correct, [d1,d2,d3], explanation);
     }
   }
 }
@@ -788,12 +1013,12 @@ document.getElementById("trainer-next").addEventListener("click", renderTrainerT
 /* =========================================================
    ЭКЗАМЕН
    ========================================================= */
-let examState = {name:"",current:0,answers:[],start:null,locked:false};
+let examState = {name:"",current:0,answers:[],start:null,locked:false,currentTask:null};
 
 document.getElementById("start-exam").addEventListener("click",()=>{
   const name = document.getElementById("student-name").value.trim();
   if(name.length<2){ alert("Введите имя (минимум 2 символа)"); return; }
-  examState = {name, current:0, answers:[], start:Date.now(), locked:false};
+  examState = {name, current:0, answers:[], start:Date.now(), locked:false, currentTask:null};
   document.getElementById("exam-start").classList.add("hidden");
   document.getElementById("result-screen").classList.add("hidden");
   document.getElementById("exam-screen").classList.remove("hidden");
@@ -813,27 +1038,28 @@ function renderExamTask(){
 
   const view = computeView(t.intervals);
   
-  // ИСПРАВЛЕНО: перемешиваем варианты в экзамене
+  // Перемешиваем варианты
   const all = t.intervals.map((iv,idx) => ({iv, isCorrect: idx===t.correctIdx}));
-  const {shuffled, newCorrectIdx} = shuffleWithCorrect(all, t.correctIdx);
+  const {shuffled, newCorrectIdx} = shuffleWithCorrect(all);
   
-  const taskForRender = {
+  // ИСПРАВЛЕНО: сохраняем перемешанное задание в examState
+  examState.currentTask = {
     ...t,
     intervals: shuffled.map(o => o.iv),
     correctIdx: newCorrectIdx,
     view
   };
-  renderOptions(document.getElementById("task-input"), taskForRender, "exam");
+  
+  renderOptions(document.getElementById("task-input"), examState.currentTask, "exam");
 }
 
 document.getElementById("btn-check").addEventListener("click",()=>{
   if(examState.locked) return;
-  const t = EXAM_TASKS[examState.current];
   const sel = document.querySelector("#task-input .option.selected");
   if(!sel){ alert("Выберите вариант ответа"); return; }
   const userAnswer = parseInt(sel.dataset.idx);
   
-  // Получаем текущий correctIdx из DOM (он мог измениться после перемешивания)
+  // ИСПРАВЛЕНО: используем examState.currentTask
   const currentTask = examState.currentTask;
   const isCorrect = userAnswer === currentTask.correctIdx;
   const correctAnswer = intervalToStr(currentTask.intervals[currentTask.correctIdx]);
@@ -844,6 +1070,7 @@ document.getElementById("btn-check").addEventListener("click",()=>{
     else if(i===userAnswer && !isCorrect) o.classList.add("wrong");
   });
 
+  const t = EXAM_TASKS[examState.current];
   examState.answers.push({
     taskIndex: examState.current,
     userAnswer: userAnswerStr,
