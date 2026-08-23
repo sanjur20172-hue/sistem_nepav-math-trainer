@@ -1,0 +1,1392 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ОГЭ‑2027: Системы неравенств</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet" />
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --bg: #f5f7fa;
+            --card-bg: #ffffff;
+            --shadow: 0 8px 24px rgba(0,0,0,0.06);
+            --radius: 16px;
+            --accent: #2a6df4;
+            --accent-hover: #1b56c9;
+            --green: #27ae60;
+            --red: #e74c3c;
+            --text-primary: #1e293b;
+            --text-secondary: #475569;
+            --border: #e2e8f0;
+            --font: 'Inter', sans-serif;
+            --transition: 0.25s ease;
+        }
+        body { font-family: var(--font); background: var(--bg); color: var(--text-primary); min-height: 100vh; display: flex; justify-content: center; align-items: flex-start; padding: 20px; }
+        .app { max-width: 1200px; width: 100%; display: grid; gap: 24px; }
+        header { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; background: var(--card-bg); padding: 16px 24px; border-radius: var(--radius); box-shadow: var(--shadow); }
+        .logo h1 { font-size: 1.5rem; font-weight: 700; }
+        .logo span { color: var(--accent); }
+        .logo small { display: block; font-size: 0.8rem; color: var(--text-secondary); }
+        .user-info { font-size: 0.9rem; color: var(--text-secondary); margin-top: 4px; }
+        .mode-switcher { display: flex; gap: 8px; background: var(--bg); padding: 4px; border-radius: 40px; }
+        .mode-btn { border: none; padding: 8px 20px; border-radius: 32px; font-weight: 600; font-size: 0.9rem; cursor: pointer; background: transparent; color: var(--text-secondary); transition: var(--transition); }
+        .mode-btn.active { background: var(--accent); color: #fff; box-shadow: 0 4px 8px rgba(42,109,244,0.25); }
+        .mode-btn:not(.active):hover { background: rgba(42,109,244,0.08); }
+        .main-grid { display: grid; grid-template-columns: 1fr; gap: 24px; }
+        @media (min-width: 1024px) { .main-grid { grid-template-columns: 2fr 1fr; align-items: start; } }
+        .task-card { background: var(--card-bg); border-radius: var(--radius); box-shadow: var(--shadow); padding: 28px 24px 32px; }
+        .question-display { font-size: 1.4rem; font-weight: 500; line-height: 1.8; padding: 16px 0 24px; text-align: center; min-height: 5rem; }
+        .options-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 20px 0; }
+        @media (max-width: 600px) { .options-grid { grid-template-columns: 1fr; } }
+        .option-btn {
+            background: #fafbfc;
+            border: 2px solid var(--border);
+            border-radius: 12px;
+            padding: 12px;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+        }
+        .option-btn:hover:not(.disabled) { border-color: var(--accent); background: #f0f4ff; }
+        .option-btn .letter { font-weight: 700; color: var(--text-secondary); margin-bottom: 6px; }
+        .option-btn .number-line-canvas { width: 100%; max-width: 180px; height: 50px; background: white; border-radius: 6px; border: 1px solid #e2e8f0; }
+        .option-btn.selected { border-color: var(--accent); background: #e8edfd; }
+        .option-btn.correct { border-color: var(--green); background: #eafaf1; }
+        .option-btn.wrong { border-color: var(--red); background: #fdedec; }
+        .option-btn.disabled { cursor: default; opacity: 0.9; }
+        .option-btn.reveal-correct { border-color: var(--green); background: #eafaf1; }
+        .input-area { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; margin: 16px 0 8px; }
+        .input-area button { padding: 14px 32px; border: none; border-radius: 40px; font-weight: 600; font-size: 1rem; cursor: pointer; background: var(--accent); color: #fff; box-shadow: 0 4px 12px rgba(42,109,244,0.25); transition: var(--transition); }
+        .input-area button:hover:not(:disabled) { background: var(--accent-hover); transform: translateY(-1px); }
+        .input-area button.secondary { background: #eef2f6; color: var(--text-primary); box-shadow: none; }
+        .input-area button.secondary:hover:not(:disabled) { background: #e2e8f0; }
+        .input-area button:disabled { opacity: 0.5; pointer-events: none; }
+        .feedback { margin-top: 16px; padding: 16px 20px; border-radius: 12px; font-weight: 500; display: none; }
+        .feedback.show { display: block; }
+        .feedback.correct { background: #eafaf1; color: var(--green); border-left: 5px solid var(--green); }
+        .feedback.wrong { background: #fdedec; color: var(--red); border-left: 5px solid var(--red); }
+        .feedback .steps { margin-top: 12px; font-weight: 400; color: var(--text-secondary); font-size: 0.95rem; line-height: 1.6; background: rgba(255,255,255,0.6); padding: 12px 16px; border-radius: 8px; }
+        .hint-btn { margin-top: 12px; background: none; border: none; color: var(--accent); font-weight: 600; cursor: pointer; font-size: 0.9rem; text-decoration: underline dotted; }
+        .hint-btn:hover { color: var(--accent-hover); }
+        .stats-panel { background: var(--card-bg); border-radius: var(--radius); box-shadow: var(--shadow); padding: 24px 20px; }
+        .stats-panel h2 { font-size: 1.1rem; font-weight: 600; margin-bottom: 16px; }
+        .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px; }
+        .stat-item { background: var(--bg); padding: 12px 10px; border-radius: 10px; text-align: center; }
+        .stat-item .value { font-size: 1.4rem; font-weight: 700; color: var(--accent); }
+        .stat-item .label { font-size: 0.75rem; text-transform: uppercase; color: var(--text-secondary); }
+        .error-types { margin: 16px 0; padding: 12px; background: #f8fafc; border-radius: 10px; }
+        .error-types h4 { font-size: 0.85rem; font-weight: 600; margin-bottom: 6px; color: var(--text-secondary); }
+        .error-types ul { list-style: none; font-size: 0.9rem; }
+        .error-types li { padding: 2px 0; border-bottom: 1px dashed var(--border); display: flex; justify-content: space-between; }
+        .error-types li:last-child { border-bottom: none; }
+        .progress-chart { margin-top: 16px; border-top: 1px solid var(--border); padding-top: 16px; }
+        .progress-chart h4 { font-size: 0.85rem; font-weight: 600; color: var(--text-secondary); margin-bottom: 10px; }
+        .progress-chart canvas { width: 100% !important; height: auto !important; max-height: 90px; background: var(--bg); border-radius: 8px; }
+        .exam-report { background: var(--card-bg); border-radius: var(--radius); box-shadow: var(--shadow); padding: 28px 24px; display: none; }
+        .exam-report.show { display: block; }
+        .exam-report .score { font-size: 2.8rem; font-weight: 700; color: var(--accent); text-align: center; }
+        .exam-report .details { margin: 16px 0; overflow-x: auto; }
+        .exam-report table { width: 100%; border-collapse: collapse; font-size: 0.9rem; min-width: 700px; }
+        .exam-report th { background: var(--bg); padding: 10px 8px; text-align: left; font-weight: 600; border-bottom: 2px solid var(--border); }
+        .exam-report td { padding: 10px 8px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+        .exam-report .status-correct { color: var(--green); font-weight: 600; }
+        .exam-report .status-wrong { color: var(--red); font-weight: 600; }
+        .exam-report .solution-toggle { background: none; border: none; color: var(--accent); cursor: pointer; font-weight: 500; text-decoration: underline dotted; }
+        .exam-report .solution-toggle:hover { color: var(--accent-hover); }
+        .exam-report .solution-steps { background: var(--bg); padding: 10px 14px; border-radius: 8px; margin-top: 6px; font-size: 0.9rem; line-height: 1.5; display: none; }
+        .exam-report .solution-steps.show { display: block; }
+        .exam-report .recommendation { margin-top: 16px; padding: 12px 16px; background: #f0f4ff; border-radius: 10px; border-left: 5px solid var(--accent); }
+        .badge-easy { background: #dbeafe; color: #1e40af; padding: 2px 10px; border-radius: 12px; font-size: 0.75rem; font-weight: 600; }
+        .badge-medium { background: #fef3c7; color: #92400e; padding: 2px 10px; border-radius: 12px; font-size: 0.75rem; font-weight: 600; }
+        .badge-hard { background: #fce4ec; color: #c62828; padding: 2px 10px; border-radius: 12px; font-size: 0.75rem; font-weight: 600; }
+        .name-screen { display: flex; justify-content: center; align-items: center; min-height: 60vh; background: var(--card-bg); border-radius: var(--radius); box-shadow: var(--shadow); padding: 40px 20px; flex-direction: column; gap: 20px; }
+        .name-screen h2 { font-size: 2rem; }
+        .name-screen input { padding: 14px 24px; border: 2px solid var(--border); border-radius: 40px; font-size: 1.2rem; width: 100%; max-width: 350px; outline: none; }
+        .name-screen input:focus { border-color: var(--accent); box-shadow: 0 0 0 4px rgba(42,109,244,0.12); }
+        .name-screen button { padding: 14px 40px; border: none; border-radius: 40px; font-weight: 600; font-size: 1.1rem; background: var(--accent); color: #fff; cursor: pointer; transition: var(--transition); }
+        .name-screen button:hover { background: var(--accent-hover); transform: translateY(-2px); }
+        .report-actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 16px; justify-content: center; }
+        .report-actions button { padding: 10px 24px; border: none; border-radius: 40px; font-weight: 600; cursor: pointer; background: #eef2f6; color: var(--text-primary); transition: var(--transition); }
+        .report-actions button:hover { background: #e2e8f0; }
+        .report-actions .send-email { background: var(--accent); color: #fff; }
+        .report-actions .send-email:hover { background: var(--accent-hover); }
+        .hidden { display: none !important; }
+        .fade-in { animation: fadeIn 0.35s ease; }
+        @keyframes fadeIn { 0% { opacity: 0; transform: translateY(8px); } 100% { opacity: 1; transform: translateY(0); } }
+        .text-center { text-align: center; }
+        .mt-16 { margin-top: 16px; }
+        @media (max-width: 600px) {
+            .exam-report table { font-size: 0.75rem; min-width: 500px; }
+            .question-display { font-size: 1.2rem; }
+            .option-btn .number-line-canvas { max-width: 120px; height: 40px; }
+            header { flex-direction: column; align-items: stretch; gap: 12px; }
+            .mode-switcher { justify-content: center; }
+        }
+    </style>
+</head>
+<body>
+<div class="app" id="app">
+    <div class="name-screen" id="nameScreen">
+        <h2>👋 Добро пожаловать!</h2>
+        <p style="color: var(--text-secondary);">Введите ваше имя, чтобы начать подготовку</p>
+        <input type="text" id="studentNameInput" placeholder="Ваше имя" autofocus />
+        <button id="startBtn">Начать тренировку</button>
+    </div>
+    <div id="mainApp" style="display: none;">
+        <header>
+            <div class="logo">
+                <h1>Системы <span>неравенств</span></h1>
+                <small>ОГЭ‑2027 • Задание №13</small>
+                <div class="user-info">👤 <span id="userNameDisplay">Имя</span></div>
+            </div>
+            <div class="mode-switcher">
+                <button class="mode-btn active" data-mode="train">🧠 Тренировка</button>
+                <button class="mode-btn" data-mode="exam">📝 Экзамен (10)</button>
+            </div>
+        </header>
+        <div class="main-grid">
+            <section class="task-card" id="taskCard">
+                <div class="question-display" id="questionDisplay">Задание загружается...</div>
+                <div class="options-grid" id="optionsContainer"></div>
+                <div class="input-area">
+                    <button id="checkBtn" disabled>✅ Проверить</button>
+                    <button id="nextBtn" class="secondary" disabled>➡️ Следующее</button>
+                </div>
+                <div class="feedback" id="feedback">
+                    <div id="feedbackText"></div>
+                    <div class="steps" id="stepsContainer"></div>
+                </div>
+                <button class="hint-btn" id="hintBtn">💡 Показать подсказку</button>
+                <div id="hintContainer" class="mt-16" style="font-size:0.95rem; color: var(--text-secondary); display:none;"></div>
+                <div id="examProgress" class="mt-16 text-center" style="font-weight:500; display:none;"></div>
+                <div id="difficultyLabel" class="mt-16 text-center" style="font-size:0.9rem; color: var(--text-secondary); display:none;"></div>
+                <div id="timeSpent" class="mt-16 text-center" style="font-size:0.9rem; color: var(--text-secondary);"></div>
+            </section>
+            <aside class="stats-panel" id="statsPanel">
+                <h2>📊 Статистика</h2>
+                <div class="stat-grid" id="statGrid">
+                    <div class="stat-item"><div class="value" id="totalSolved">0</div><div class="label">Решено</div></div>
+                    <div class="stat-item"><div class="value" id="accuracy">0%</div><div class="label">Верно</div></div>
+                    <div class="stat-item"><div class="value" id="avgTime">0с</div><div class="label">Среднее время</div></div>
+                    <div class="stat-item"><div class="value" id="streak">0</div><div class="label">Серия 🔥</div></div>
+                </div>
+                <div class="error-types" id="errorTypes">
+                    <h4>🔍 Частые ошибки</h4>
+                    <ul id="errorList"><li>Пока нет данных</li></ul>
+                </div>
+                <div class="progress-chart">
+                    <h4>📈 Дневник прогресса (последние 10 сессий)</h4>
+                    <canvas id="progressCanvas" height="90"></canvas>
+                </div>
+            </aside>
+        </div>
+        <div class="exam-report" id="examReport">
+            <h3>📋 Результаты экзамена</h3>
+            <div class="score" id="examScore">10/10</div>
+            <div class="details" id="examDetails"></div>
+            <div class="recommendation" id="examRecommendation"></div>
+            <div class="report-actions">
+                <button class="send-email" id="sendReportBtn">📧 Отправить отчёт преподавателю</button>
+                <button id="copyReportBtn">📋 Скопировать отчёт</button>
+                <button id="downloadReportBtn">⬇️ Скачать отчёт (.txt)</button>
+            </div>
+            <button class="mode-btn" id="examRestartBtn" style="background:var(--accent); color:#fff; padding:12px 32px; border:none; border-radius:40px; font-weight:600; cursor:pointer; margin-top:16px;">🔄 Начать заново</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // ============================================================
+    //  ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ
+    // ============================================================
+    function shuffle(arr) {
+        for (let i = arr.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [arr[i], arr[j]] = [arr[j], arr[i]];
+        }
+        return arr;
+    }
+
+    function randomInt(min, max) {
+        return Math.floor(Math.random() * (max - min + 1)) + min;
+    }
+
+    // Округление до 0.5 для красоты
+    function roundHalf(num) {
+        return Math.round(num * 2) / 2;
+    }
+
+    // ============================================================
+    //  РИСОВАНИЕ ЧИСЛОВОЙ ПРЯМОЙ НА CANVAS
+    // ============================================================
+    function drawNumberLine(canvas, interval, xMin, xMax) {
+        const ctx = canvas.getContext('2d');
+        const w = canvas.width, h = canvas.height;
+        ctx.clearRect(0, 0, w, h);
+
+        // Отступы
+        const pad = 10;
+        const drawW = w - 2 * pad;
+        const drawH = h - 2 * pad;
+        const yAxis = h / 2;
+
+        // Определяем диапазон
+        let min = xMin !== undefined ? xMin : -5;
+        let max = xMax !== undefined ? xMax : 5;
+        if (interval) {
+            if (interval.leftBound !== null && interval.leftBound < min) min = interval.leftBound - 1;
+            if (interval.rightBound !== null && interval.rightBound > max) max = interval.rightBound + 1;
+        }
+        // Расширяем для красивых меток
+        min = Math.floor(min) - 1;
+        max = Math.ceil(max) + 1;
+
+        const scale = drawW / (max - min);
+
+        // Функция для преобразования координат
+        const toX = (val) => pad + (val - min) * scale;
+
+        // Рисуем ось
+        ctx.beginPath();
+        ctx.moveTo(pad, yAxis);
+        ctx.lineTo(w - pad, yAxis);
+        ctx.strokeStyle = '#333';
+        ctx.lineWidth = 1;
+        ctx.stroke();
+
+        // Стрелка
+        ctx.beginPath();
+        ctx.moveTo(w - pad, yAxis);
+        ctx.lineTo(w - pad - 8, yAxis - 4);
+        ctx.lineTo(w - pad - 8, yAxis + 4);
+        ctx.closePath();
+        ctx.fillStyle = '#333';
+        ctx.fill();
+
+        // Метки и деления
+        ctx.fillStyle = '#333';
+        ctx.font = '10px Inter';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'top';
+        for (let v = Math.ceil(min); v <= Math.floor(max); v++) {
+            const x = toX(v);
+            // деление
+            ctx.beginPath();
+            ctx.moveTo(x, yAxis - 4);
+            ctx.lineTo(x, yAxis + 4);
+            ctx.strokeStyle = '#333';
+            ctx.lineWidth = 1;
+            ctx.stroke();
+            // подпись
+            ctx.fillStyle = '#333';
+            ctx.font = '10px Inter';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'top';
+            ctx.fillText(v, x, yAxis + 6);
+        }
+
+        // Если интервал задан, рисуем его
+        if (interval) {
+            const left = interval.leftBound;
+            const right = interval.rightBound;
+            const leftInc = interval.leftInclusive;
+            const rightInc = interval.rightInclusive;
+
+            // Определяем, есть ли бесконечности
+            const hasLeft = left !== null;
+            const hasRight = right !== null;
+
+            // Рисуем линию интервала
+            let x1 = hasLeft ? toX(left) : pad;
+            let x2 = hasRight ? toX(right) : w - pad;
+            // Если левая граница -∞, то x1 = pad, если правая +∞, x2 = w - pad
+            ctx.beginPath();
+            ctx.moveTo(x1, yAxis);
+            ctx.lineTo(x2, yAxis);
+            ctx.strokeStyle = '#2a6df4';
+            ctx.lineWidth = 4;
+            ctx.stroke();
+
+            // Рисуем кружки на границах
+            if (hasLeft) {
+                const x = toX(left);
+                ctx.beginPath();
+                ctx.arc(x, yAxis, 5, 0, 2 * Math.PI);
+                ctx.fillStyle = leftInc ? '#2a6df4' : '#ffffff';
+                ctx.fill();
+                ctx.strokeStyle = '#2a6df4';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+            }
+            if (hasRight) {
+                const x = toX(right);
+                ctx.beginPath();
+                ctx.arc(x, yAxis, 5, 0, 2 * Math.PI);
+                ctx.fillStyle = rightInc ? '#2a6df4' : '#ffffff';
+                ctx.fill();
+                ctx.strokeStyle = '#2a6df4';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+            }
+
+            // Штриховка интервала (небольшая стрелка или заливка)
+            ctx.beginPath();
+            ctx.moveTo(x1, yAxis - 8);
+            ctx.lineTo(x1 + 4, yAxis - 4);
+            ctx.lineTo(x1, yAxis);
+            ctx.strokeStyle = '#2a6df4';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.moveTo(x2, yAxis - 8);
+            ctx.lineTo(x2 - 4, yAxis - 4);
+            ctx.lineTo(x2, yAxis);
+            ctx.strokeStyle = '#2a6df4';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+
+            // Подпись интервала (текст)
+            let label = '';
+            if (hasLeft && hasRight) {
+                label += (leftInc ? '[' : '(') + left + '; ' + right + (rightInc ? ']' : ')');
+            } else if (hasLeft) {
+                label += (leftInc ? '[' : '(') + left + '; +∞)';
+            } else if (hasRight) {
+                label += '(-∞; ' + right + (rightInc ? ']' : ')');
+            } else {
+                label = '(-∞; +∞)';
+            }
+            ctx.fillStyle = '#2a6df4';
+            ctx.font = '11px Inter';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'bottom';
+            ctx.fillText(label, (x1 + x2) / 2, yAxis - 10);
+        }
+    }
+
+    // ============================================================
+    //  ГЕНЕРАТОР СИСТЕМ НЕРАВЕНСТВ
+    // ============================================================
+    const SystemGenerator = {
+        // Генерация системы с заданной сложностью: 'easy', 'medium', 'hard'
+        generate(difficulty) {
+            let result = null;
+            for (let attempt = 0; attempt < 30; attempt++) {
+                result = this.generateSystem(difficulty);
+                if (result) break;
+            }
+            if (!result) result = this.fallback();
+            return result;
+        },
+
+        generateSystem(difficulty) {
+            // Случайно выбираем тип системы: 0 - оба неравенства вида x > a и x < b (конечный интервал)
+            // 1 - одно неравенство x > a, второе x > b -> x > max(a,b) (бесконечный)
+            // 2 - одно x < a, второе x < b -> x < min(a,b) (бесконечный)
+            // 3 - комбинация с нестрогими
+            // Для простых и средних делаем интервалы, для сложных – бесконечные с дробями.
+
+            let type;
+            if (difficulty === 'easy') type = 0; // только конечные интервалы с целыми
+            else if (difficulty === 'medium') type = randomInt(0, 2);
+            else type = randomInt(0, 3);
+
+            let a1, b1, c1, a2, b2, c2; // коэффициенты для двух неравенств: a1*x + b1 > 0
+            let leftBound, rightBound, leftInc, rightInc;
+            let displayIneq1, displayIneq2;
+
+            // Генерация двух неравенств
+            const generateInequality = (typeSign) => {
+                // typeSign: 'gt' (>0), 'lt' (<0), 'ge' (>=0), 'le' (<=0)
+                let a = 0, b = 0;
+                // Попробуем сделать простое неравенство
+                if (difficulty === 'easy') {
+                    a = randomInt(1, 5);
+                    b = randomInt(-10, 10);
+                } else if (difficulty === 'medium') {
+                    a = randomInt(1, 8) * (Math.random() < 0.5 ? 1 : -1);
+                    b = randomInt(-15, 15);
+                } else {
+                    a = randomInt(1, 12) * (Math.random() < 0.5 ? 1 : -1);
+                    b = randomInt(-20, 20);
+                    // иногда с дробями
+                    if (Math.random() < 0.3) {
+                        a = randomInt(1, 5);
+                        b = randomInt(-10, 10);
+                        // сделаем коэффициент дробным: a = a / 2
+                        // но для простоты оставим целые
+                    }
+                }
+                // Определяем знак неравенства
+                let sign;
+                if (typeSign === 'gt') sign = '>';
+                else if (typeSign === 'lt') sign = '<';
+                else if (typeSign === 'ge') sign = '≥';
+                else sign = '≤';
+                // Строим отображение
+                let display = '';
+                if (a === 1) display += 'x';
+                else if (a === -1) display += '-x';
+                else display += a + 'x';
+                if (b > 0) display += ' + ' + b;
+                else if (b < 0) display += ' - ' + Math.abs(b);
+                display += ' ' + sign + ' 0';
+                // Решаем: a*x + b sign 0  =>  a*x sign -b
+                let solutionSign, solutionValue;
+                if (sign === '>' || sign === '≥') {
+                    // a*x > -b  =>  x > -b/a если a>0, иначе x < -b/a
+                    if (a > 0) {
+                        solutionSign = (sign === '>' ? '>' : '≥');
+                        solutionValue = -b / a;
+                    } else {
+                        solutionSign = (sign === '>' ? '<' : '≤');
+                        solutionValue = -b / a;
+                    }
+                } else { // '<' или '≤'
+                    if (a > 0) {
+                        solutionSign = (sign === '<' ? '<' : '≤');
+                        solutionValue = -b / a;
+                    } else {
+                        solutionSign = (sign === '<' ? '>' : '≥');
+                        solutionValue = -b / a;
+                    }
+                }
+                // Округляем до 0.5
+                let val = roundHalf(solutionValue);
+                // Проверяем, что не получилось очень большое число
+                if (Math.abs(val) > 20) return null;
+                // Возвращаем объект
+                return {
+                    display: display,
+                    solutionSign: solutionSign,
+                    solutionValue: val,
+                    a: a,
+                    b: b,
+                    sign: sign
+                };
+            };
+
+            // Генерируем два неравенства
+            let ineq1, ineq2;
+            let attempts = 0;
+            while (attempts < 20) {
+                ineq1 = generateInequality(randomInt(0,1)===0?'gt':'lt');
+                ineq2 = generateInequality(randomInt(0,1)===0?'gt':'lt');
+                if (ineq1 && ineq2) break;
+                attempts++;
+            }
+            if (!ineq1 || !ineq2) return null;
+
+            // Теперь решаем систему: пересечение двух решений
+            // Каждое решение: x > A или x < A или x ≥ A или x ≤ A
+            // Найдём пересечение
+            let sol1 = { sign: ineq1.solutionSign, value: ineq1.solutionValue };
+            let sol2 = { sign: ineq2.solutionSign, value: ineq2.solutionValue };
+
+            // Приводим к виду: левая граница (L) и правая граница (R) с включенностью
+            // Обработка случаев
+            let left = null, right = null, leftInc = false, rightInc = false;
+
+            // Функция для определения интервала из двух решений
+            // Сначала приведём к стандартному виду: x > a или x ≥ a  и  x < b или x ≤ b
+            let lowerSign, lowerVal, upperSign, upperVal;
+            // Определяем, какое неравенство задаёт нижнюю границу, какое верхнюю
+            if (sol1.sign === '>' || sol1.sign === '≥') {
+                lowerSign = sol1.sign;
+                lowerVal = sol1.value;
+                if (sol2.sign === '<' || sol2.sign === '≤') {
+                    upperSign = sol2.sign;
+                    upperVal = sol2.value;
+                } else {
+                    // оба >, пересечение x > max
+                    if (sol1.value > sol2.value) {
+                        lowerSign = sol1.sign;
+                        lowerVal = sol1.value;
+                    } else {
+                        lowerSign = sol2.sign;
+                        lowerVal = sol2.value;
+                    }
+                    upperSign = null;
+                    upperVal = null;
+                }
+            } else if (sol1.sign === '<' || sol1.sign === '≤') {
+                upperSign = sol1.sign;
+                upperVal = sol1.value;
+                if (sol2.sign === '>' || sol2.sign === '≥') {
+                    lowerSign = sol2.sign;
+                    lowerVal = sol2.value;
+                } else {
+                    // оба <, пересечение x < min
+                    if (sol1.value < sol2.value) {
+                        upperSign = sol1.sign;
+                        upperVal = sol1.value;
+                    } else {
+                        upperSign = sol2.sign;
+                        upperVal = sol2.value;
+                    }
+                    lowerSign = null;
+                    lowerVal = null;
+                }
+            } else {
+                // не должно быть
+                return null;
+            }
+
+            // Проверяем корректность
+            if (lowerSign && upperSign && lowerVal > upperVal) {
+                // Пустое множество
+                // Вместо этого можно поменять знаки, но для простоты сделаем пересечение пустым, но в ОГЭ такое редко
+                // Сделаем, чтобы нижняя граница была меньше верхней
+                if (lowerVal > upperVal) {
+                    // меняем местами
+                    let tmp = lowerVal; lowerVal = upperVal; upperVal = tmp;
+                    // знаки тоже меняем? Нет, просто переставим
+                }
+            }
+
+            if (lowerSign) {
+                left = lowerVal;
+                leftInc = (lowerSign === '≥' || lowerSign === '≤');
+                // если lowerSign '≤', то это на самом деле верхняя граница, но мы уже обработали
+            }
+            if (upperSign) {
+                right = upperVal;
+                rightInc = (upperSign === '≤' || upperSign === '≥');
+            }
+
+            // Если обе границы есть, то интервал (left; right)
+            // Если только левая, то (left; +∞)
+            // Если только правая, то (-∞; right)
+
+            // Формируем объект ответа
+            let interval = {
+                leftBound: left !== null ? left : null,
+                rightBound: right !== null ? right : null,
+                leftInclusive: leftInc,
+                rightInclusive: rightInc
+            };
+
+            // Если получились одинаковые границы и обе включены, то одна точка
+            if (left !== null && right !== null && left === right) {
+                // точка
+                interval.leftBound = left;
+                interval.rightBound = left;
+                interval.leftInclusive = true;
+                interval.rightInclusive = true;
+            }
+
+            // Если left > right, то пустое множество (но мы уже исправили)
+
+            // Строим отображение системы
+            let display = ineq1.display + ' и ' + ineq2.display;
+
+            // Пошаговое решение
+            let steps = [
+                'Рассмотрим каждое неравенство отдельно:',
+                ineq1.display + '  =>  x ' + ineq1.solutionSign + ' ' + ineq1.solutionValue,
+                ineq2.display + '  =>  x ' + ineq2.solutionSign + ' ' + ineq2.solutionValue,
+                'Находим пересечение решений (числовую прямую).'
+            ];
+            if (left !== null && right !== null) {
+                steps.push('Получаем интервал: ' + (leftInc ? '[' : '(') + left + '; ' + right + (rightInc ? ']' : ')'));
+            } else if (left !== null) {
+                steps.push('Получаем промежуток: ' + (leftInc ? '[' : '(') + left + '; +∞)');
+            } else if (right !== null) {
+                steps.push('Получаем промежуток: (-∞; ' + right + (rightInc ? ']' : ')'));
+            } else {
+                steps.push('Решение: вся числовая прямая');
+            }
+
+            // Подсказка
+            let hint = 'Решите каждое неравенство отдельно, затем найдите пересечение решений.';
+
+            // Тип для статистики
+            let typeLabel = 'Система неравенств';
+
+            // Генерируем варианты ответов (4 варианта)
+            let correctInterval = interval;
+            let options = this.generateOptions(correctInterval, difficulty);
+
+            return {
+                display: display,
+                correctAnswer: correctInterval,
+                options: options,
+                type: typeLabel,
+                steps: steps,
+                hint: hint,
+                difficulty: difficulty
+            };
+        },
+
+        generateOptions(correctInterval, difficulty) {
+            // Генерируем 4 варианта: правильный и 3 неправильных
+            let options = [correctInterval];
+            // Создаём дистракторы
+            let candidates = [];
+            // Изменяем границы
+            let shift = difficulty === 'easy' ? 1 : (difficulty === 'medium' ? 2 : 3);
+            // 1) Изменить левую границу
+            if (correctInterval.leftBound !== null) {
+                let newLeft = correctInterval.leftBound + shift;
+                let newInterval = { ...correctInterval, leftBound: newLeft };
+                candidates.push(newInterval);
+            }
+            // 2) Изменить правую границу
+            if (correctInterval.rightBound !== null) {
+                let newRight = correctInterval.rightBound - shift;
+                let newInterval = { ...correctInterval, rightBound: newRight };
+                candidates.push(newInterval);
+            }
+            // 3) Изменить включенность
+            if (correctInterval.leftBound !== null) {
+                let newInterval = { ...correctInterval, leftInclusive: !correctInterval.leftInclusive };
+                candidates.push(newInterval);
+            }
+            // 4) Если интервал бесконечный, изменить знак
+            if (correctInterval.leftBound === null) {
+                // (-∞; a)  ->  (a; +∞) приблизительно
+                let newInterval = { leftBound: correctInterval.rightBound, rightBound: null, leftInclusive: correctInterval.rightInclusive, rightInclusive: false };
+                candidates.push(newInterval);
+            }
+            if (correctInterval.rightBound === null) {
+                let newInterval = { leftBound: null, rightBound: correctInterval.leftBound, leftInclusive: false, rightInclusive: correctInterval.leftInclusive };
+                candidates.push(newInterval);
+            }
+            // Если не хватает, добавим случайные
+            shuffle(candidates);
+            // Выбираем 3 уникальных (не равных правильному)
+            let selected = [];
+            for (let cand of candidates) {
+                if (!this.intervalsEqual(cand, correctInterval) && !selected.some(s => this.intervalsEqual(s, cand))) {
+                    selected.push(cand);
+                    if (selected.length === 3) break;
+                }
+            }
+            while (selected.length < 3) {
+                // Сгенерируем случайный интервал
+                let randInterval = this.randomInterval(difficulty);
+                if (!this.intervalsEqual(randInterval, correctInterval) && !selected.some(s => this.intervalsEqual(s, randInterval))) {
+                    selected.push(randInterval);
+                }
+            }
+            // Добавляем правильный и перемешиваем
+            options = [correctInterval, ...selected];
+            shuffle(options);
+            return options;
+        },
+
+        intervalsEqual(a, b) {
+            return a.leftBound === b.leftBound &&
+                   a.rightBound === b.rightBound &&
+                   a.leftInclusive === b.leftInclusive &&
+                   a.rightInclusive === b.rightInclusive;
+        },
+
+        randomInterval(difficulty) {
+            let left = randomInt(-5, 5);
+            let right = left + randomInt(1, 5);
+            let leftInc = Math.random() < 0.5;
+            let rightInc = Math.random() < 0.5;
+            return { leftBound: left, rightBound: right, leftInclusive: leftInc, rightInclusive: rightInc };
+        },
+
+        fallback() {
+            let interval = { leftBound: 2, rightBound: 5, leftInclusive: false, rightInclusive: false };
+            let options = [
+                interval,
+                { leftBound: 1, rightBound: 5, leftInclusive: false, rightInclusive: false },
+                { leftBound: 2, rightBound: 4, leftInclusive: false, rightInclusive: false },
+                { leftBound: 2, rightBound: 5, leftInclusive: true, rightInclusive: false }
+            ];
+            shuffle(options);
+            return {
+                display: 'x > 2 и x < 5',
+                correctAnswer: interval,
+                options: options,
+                type: 'Система неравенств',
+                steps: ['x > 2', 'x < 5', 'Пересечение: (2; 5)'],
+                hint: 'Найдите пересечение двух промежутков.',
+                difficulty: 'easy'
+            };
+        }
+    };
+
+    // ============================================================
+    //  ОТРИСОВКА ВАРИАНТОВ С ЧИСЛОВЫМИ ПРЯМЫМИ
+    // ============================================================
+    function renderOptions(options, container) {
+        container.innerHTML = '';
+        const letters = ['A', 'B', 'C', 'D'];
+        // Определяем общий диапазон для всех числовых прямых (чтобы масштаб был одинаковым)
+        let allBounds = [];
+        options.forEach(opt => {
+            if (opt.leftBound !== null) allBounds.push(opt.leftBound);
+            if (opt.rightBound !== null) allBounds.push(opt.rightBound);
+        });
+        let min = Math.min(...allBounds) - 1;
+        let max = Math.max(...allBounds) + 1;
+        // Если есть бесконечности, расширяем диапазон
+        if (options.some(o => o.leftBound === null || o.rightBound === null)) {
+            min = -6;
+            max = 6;
+        }
+
+        options.forEach((opt, idx) => {
+            const btn = document.createElement('div');
+            btn.className = 'option-btn';
+            btn.dataset.index = idx;
+            const letterSpan = document.createElement('div');
+            letterSpan.className = 'letter';
+            letterSpan.textContent = letters[idx];
+            btn.appendChild(letterSpan);
+            const canvas = document.createElement('canvas');
+            canvas.className = 'number-line-canvas';
+            canvas.width = 180;
+            canvas.height = 50;
+            // Рисуем числовую прямую
+            drawNumberLine(canvas, opt, min, max);
+            btn.appendChild(canvas);
+            // Подпись интервала текстом
+            const label = document.createElement('div');
+            label.style.fontSize = '0.8rem';
+            label.style.color = '#475569';
+            label.style.marginTop = '4px';
+            let text = '';
+            if (opt.leftBound !== null && opt.rightBound !== null) {
+                text += (opt.leftInclusive ? '[' : '(') + opt.leftBound + '; ' + opt.rightBound + (opt.rightInclusive ? ']' : ')');
+            } else if (opt.leftBound !== null) {
+                text += (opt.leftInclusive ? '[' : '(') + opt.leftBound + '; +∞)';
+            } else if (opt.rightBound !== null) {
+                text += '(-∞; ' + opt.rightBound + (opt.rightInclusive ? ']' : ')');
+            } else {
+                text = '(-∞; +∞)';
+            }
+            label.textContent = text;
+            btn.appendChild(label);
+            btn.addEventListener('click', () => App.selectOption(idx));
+            container.appendChild(btn);
+        });
+    }
+
+    // ============================================================
+    //  СТАТИСТИКА
+    // ============================================================
+    const Stats = {
+        getKey() {
+            const name = localStorage.getItem('studentName') || 'anonymous';
+            return 'systemStats_' + name;
+        },
+        defaults: { totalSolved: 0, correct: 0, totalTime: 0, sessionHistory: [], errorCounts: {} },
+        load() {
+            const data = localStorage.getItem(this.getKey());
+            if (data) {
+                try { return JSON.parse(data); } catch (e) {}
+            }
+            return JSON.parse(JSON.stringify(this.defaults));
+        },
+        save(data) { localStorage.setItem(this.getKey(), JSON.stringify(data)); },
+        addResult(correct, timeSpent, type) {
+            const stats = this.load();
+            stats.totalSolved += 1;
+            if (correct) stats.correct += 1;
+            stats.totalTime += timeSpent;
+            if (!correct) {
+                stats.errorCounts[type] = (stats.errorCounts[type] || 0) + 1;
+            }
+            this.save(stats);
+            this.renderStats(stats);
+            this.updateChart(stats);
+            return stats;
+        },
+        finishSession(correct, total, timeSpent) {
+            const stats = this.load();
+            stats.sessionHistory.push({
+                date: new Date().toISOString(),
+                correct,
+                total,
+                avgTime: total > 0 ? Math.round(timeSpent / total) : 0
+            });
+            if (stats.sessionHistory.length > 10) stats.sessionHistory.shift();
+            this.save(stats);
+            this.renderStats(stats);
+            this.updateChart(stats);
+        },
+        renderStats(stats) {
+            document.getElementById('totalSolved').textContent = stats.totalSolved;
+            const acc = stats.totalSolved === 0 ? 0 : Math.round((stats.correct / stats.totalSolved) * 100);
+            document.getElementById('accuracy').textContent = acc + '%';
+            const avgTime = stats.totalSolved === 0 ? 0 : Math.round(stats.totalTime / stats.totalSolved);
+            document.getElementById('avgTime').textContent = avgTime + 'с';
+            const name = localStorage.getItem('studentName') || 'anonymous';
+            let streak = parseInt(localStorage.getItem('systemStreak_' + name) || '0');
+            document.getElementById('streak').textContent = streak;
+            const errorList = document.getElementById('errorList');
+            const entries = Object.entries(stats.errorCounts).sort((a, b) => b[1] - a[1]);
+            if (entries.length === 0) {
+                errorList.innerHTML = '<li>Пока нет данных</li>';
+            } else {
+                errorList.innerHTML = entries.map(([type, count]) =>
+                    `<li><span>${type}</span><span>${count}×</span></li>`
+                ).join('');
+            }
+        },
+        updateChart(stats) {
+            const canvas = document.getElementById('progressCanvas');
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+            const history = stats.sessionHistory.slice(-10);
+            if (history.length === 0) {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                ctx.fillStyle = '#94a3b8';
+                ctx.font = '12px Inter';
+                ctx.textAlign = 'center';
+                ctx.fillText('Нет данных', canvas.width/2, 50);
+                return;
+            }
+            const w = canvas.width, h = canvas.height;
+            ctx.clearRect(0, 0, w, h);
+            const padding = { top: 10, bottom: 20, left: 10, right: 10 };
+            const chartW = w - padding.left - padding.right;
+            const chartH = h - padding.top - padding.bottom;
+            const maxVal = Math.max(1, ...history.map(d => d.correct / d.total * 100));
+            const points = history.map((d, i) => ({
+                x: padding.left + (i / (history.length - 1 || 1)) * chartW,
+                y: padding.top + chartH - (d.correct / d.total * 100 / maxVal) * chartH
+            }));
+            ctx.beginPath();
+            ctx.strokeStyle = '#2a6df4';
+            ctx.lineWidth = 2.5;
+            points.forEach((p, i) => {
+                if (i === 0) ctx.moveTo(p.x, p.y);
+                else ctx.lineTo(p.x, p.y);
+            });
+            ctx.stroke();
+            points.forEach(p => {
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, 4, 0, 2 * Math.PI);
+                ctx.fillStyle = '#2a6df4';
+                ctx.fill();
+            });
+            ctx.fillStyle = '#475569';
+            ctx.font = '9px Inter';
+            ctx.textAlign = 'center';
+            history.forEach((d, i) => {
+                const x = padding.left + (i / (history.length - 1 || 1)) * chartW;
+                const y = padding.top + chartH + 14;
+                ctx.fillText(Math.round(d.correct / d.total * 100) + '%', x, y);
+            });
+        }
+    };
+
+    // ============================================================
+    //  ОСНОВНОЙ КОНТРОЛЛЕР
+    // ============================================================
+    const App = {
+        mode: 'train',
+        examQuestions: [],
+        examIndex: 0,
+        examCorrect: 0,
+        examStartTime: null,
+        currentQuestion: null,
+        isAnswered: false,
+        totalExamTime: 0,
+        examResults: [],
+        questionStartTime: null,
+        selectedOptionIndex: null,
+
+        init() {
+            const savedName = localStorage.getItem('studentName');
+            if (savedName) {
+                document.getElementById('nameScreen').style.display = 'none';
+                document.getElementById('mainApp').style.display = 'grid';
+                document.getElementById('userNameDisplay').textContent = savedName;
+                this.bindUI();
+                this.loadStreak();
+                this.newQuestion();
+                const stats = Stats.load();
+                Stats.renderStats(stats);
+                Stats.updateChart(stats);
+            } else {
+                document.getElementById('nameScreen').style.display = 'flex';
+                document.getElementById('mainApp').style.display = 'none';
+                document.getElementById('startBtn').addEventListener('click', () => {
+                    const name = document.getElementById('studentNameInput').value.trim();
+                    if (name === '') { alert('Пожалуйста, введите ваше имя'); return; }
+                    localStorage.setItem('studentName', name);
+                    document.getElementById('nameScreen').style.display = 'none';
+                    document.getElementById('mainApp').style.display = 'grid';
+                    document.getElementById('userNameDisplay').textContent = name;
+                    this.bindUI();
+                    this.loadStreak();
+                    this.newQuestion();
+                    const stats = Stats.load();
+                    Stats.renderStats(stats);
+                    Stats.updateChart(stats);
+                });
+                document.getElementById('studentNameInput').focus();
+                document.getElementById('studentNameInput').addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter') document.getElementById('startBtn').click();
+                });
+            }
+        },
+
+        bindUI() {
+            document.getElementById('checkBtn').addEventListener('click', () => this.checkAnswer());
+            document.getElementById('nextBtn').addEventListener('click', () => this.nextQuestion());
+            document.getElementById('hintBtn').addEventListener('click', () => this.showHint());
+
+            document.querySelectorAll('.mode-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    const mode = btn.dataset.mode;
+                    this.mode = mode;
+                    if (mode === 'exam') this.startExam();
+                    else { this.resetExamUI(); this.newQuestion(); }
+                });
+            });
+
+            document.getElementById('examRestartBtn').addEventListener('click', () => {
+                document.getElementById('examReport').classList.remove('show');
+                this.startExam();
+            });
+
+            document.getElementById('sendReportBtn').addEventListener('click', () => this.sendReport());
+            document.getElementById('copyReportBtn').addEventListener('click', () => this.copyReport());
+            document.getElementById('downloadReportBtn').addEventListener('click', () => this.downloadReport());
+        },
+
+        loadStreak() {
+            const name = localStorage.getItem('studentName') || 'anonymous';
+            const streak = parseInt(localStorage.getItem('systemStreak_' + name) || '0');
+            document.getElementById('streak').textContent = streak;
+        },
+        updateStreak(correct) {
+            const name = localStorage.getItem('studentName') || 'anonymous';
+            let streak = parseInt(localStorage.getItem('systemStreak_' + name) || '0');
+            streak = correct ? streak + 1 : 0;
+            localStorage.setItem('systemStreak_' + name, String(streak));
+            document.getElementById('streak').textContent = streak;
+        },
+
+        newQuestion() {
+            // В тренировке выбираем случайную сложность
+            const levels = ['easy', 'medium', 'hard'];
+            const weights = [4, 3, 2];
+            let total = weights.reduce((s, w) => s + w, 0);
+            let r = Math.random() * total;
+            let diff = 'easy';
+            for (let i = 0; i < levels.length; i++) {
+                r -= weights[i];
+                if (r <= 0) { diff = levels[i]; break; }
+            }
+            this.currentQuestion = SystemGenerator.generate(diff);
+            this.displayQuestion(this.currentQuestion);
+            this.selectedOptionIndex = null;
+            this.isAnswered = false;
+            document.getElementById('checkBtn').disabled = true;
+            document.getElementById('nextBtn').disabled = true;
+            document.getElementById('feedback').classList.remove('show', 'correct', 'wrong');
+            document.getElementById('feedbackText').textContent = '';
+            document.getElementById('stepsContainer').innerHTML = '';
+            document.getElementById('hintContainer').style.display = 'none';
+            // Отрисовка вариантов
+            renderOptions(this.currentQuestion.options, document.getElementById('optionsContainer'));
+            document.querySelectorAll('.option-btn').forEach(btn => {
+                btn.classList.remove('selected', 'correct', 'wrong', 'reveal-correct', 'disabled');
+            });
+
+            this.questionStartTime = Date.now();
+            document.getElementById('timeSpent').textContent = '';
+
+            if (this.mode === 'exam') {
+                const prog = document.getElementById('examProgress');
+                prog.style.display = 'block';
+                prog.textContent = `Вопрос ${this.examIndex + 1} из ${this.examQuestions.length}`;
+                const label = document.getElementById('difficultyLabel');
+                label.style.display = 'block';
+                const diffMap = { 'easy': '🟢 Простая', 'medium': '🟡 Средняя', 'hard': '🔴 Сложная' };
+                label.textContent = 'Сложность: ' + diffMap[this.currentQuestion.difficulty || 'easy'];
+            } else {
+                document.getElementById('examProgress').style.display = 'none';
+                document.getElementById('difficultyLabel').style.display = 'none';
+            }
+            document.getElementById('taskCard').classList.remove('fade-in');
+            setTimeout(() => document.getElementById('taskCard').classList.add('fade-in'), 10);
+        },
+
+        displayQuestion(q) {
+            document.getElementById('questionDisplay').textContent = q.display;
+        },
+
+        selectOption(index) {
+            if (this.isAnswered) return;
+            const btns = document.querySelectorAll('.option-btn');
+            btns.forEach((btn, i) => {
+                btn.classList.toggle('selected', i === index);
+            });
+            this.selectedOptionIndex = index;
+            document.getElementById('checkBtn').disabled = false;
+        },
+
+        checkAnswer() {
+            if (this.isAnswered || this.selectedOptionIndex === null) return;
+            const q = this.currentQuestion;
+            const selected = q.options[this.selectedOptionIndex];
+            const correct = q.correctAnswer;
+            const isCorrect = SystemGenerator.intervalsEqual(selected, correct);
+
+            const timeSpent = this.questionStartTime ? Math.round((Date.now() - this.questionStartTime) / 1000) : 0;
+            document.getElementById('timeSpent').textContent = `⏱ Время: ${timeSpent} с`;
+
+            if (this.mode === 'exam') {
+                this.examResults[this.examIndex] = {
+                    question: q,
+                    userAnswer: selected,
+                    correct: isCorrect,
+                    timeSpent: timeSpent
+                };
+                if (isCorrect) this.examCorrect++;
+            }
+
+            const stats = Stats.addResult(isCorrect, timeSpent, q.type);
+            this.updateStreak(isCorrect);
+
+            const btns = document.querySelectorAll('.option-btn');
+            btns.forEach((btn, i) => {
+                btn.classList.add('disabled');
+                const opt = q.options[i];
+                const isCorrectOpt = SystemGenerator.intervalsEqual(opt, correct);
+                if (isCorrectOpt) {
+                    btn.classList.add('reveal-correct');
+                }
+                if (i === this.selectedOptionIndex) {
+                    btn.classList.add(isCorrect ? 'correct' : 'wrong');
+                }
+            });
+
+            const feedback = document.getElementById('feedback');
+            const feedbackText = document.getElementById('feedbackText');
+            const stepsContainer = document.getElementById('stepsContainer');
+            feedback.className = 'feedback show ' + (isCorrect ? 'correct' : 'wrong');
+            let correctStr = '';
+            if (correct.leftBound !== null && correct.rightBound !== null) {
+                correctStr += (correct.leftInclusive ? '[' : '(') + correct.leftBound + '; ' + correct.rightBound + (correct.rightInclusive ? ']' : ')');
+            } else if (correct.leftBound !== null) {
+                correctStr += (correct.leftInclusive ? '[' : '(') + correct.leftBound + '; +∞)';
+            } else if (correct.rightBound !== null) {
+                correctStr += '(-∞; ' + correct.rightBound + (correct.rightInclusive ? ']' : ')');
+            } else {
+                correctStr = '(-∞; +∞)';
+            }
+            feedbackText.textContent = isCorrect ? '✅ Верно!' : `❌ Неправильно. Правильный ответ: ${correctStr}`;
+            const steps = q.steps || ['Решение:'];
+            stepsContainer.innerHTML = '<strong>Пошаговое решение:</strong><br>' + steps.map((s, i) => `${i+1}. ${s}`).join('<br>');
+
+            this.isAnswered = true;
+            document.getElementById('checkBtn').disabled = true;
+            document.getElementById('nextBtn').disabled = false;
+            if (this.mode === 'exam' && this.examIndex === this.examQuestions.length - 1) {
+                document.getElementById('nextBtn').textContent = '📊 Завершить экзамен';
+            } else {
+                document.getElementById('nextBtn').textContent = '➡️ Следующее';
+            }
+        },
+
+        nextQuestion() {
+            if (this.mode === 'exam') {
+                this.examIndex++;
+                if (this.examIndex >= this.examQuestions.length) {
+                    this.finishExam();
+                    return;
+                }
+                this.currentQuestion = this.examQuestions[this.examIndex];
+                this.displayQuestion(this.currentQuestion);
+                this.selectedOptionIndex = null;
+                this.isAnswered = false;
+                document.getElementById('checkBtn').disabled = true;
+                document.getElementById('nextBtn').disabled = true;
+                document.getElementById('nextBtn').textContent = '➡️ Следующее';
+                document.getElementById('feedback').classList.remove('show', 'correct', 'wrong');
+                document.getElementById('feedbackText').textContent = '';
+                document.getElementById('stepsContainer').innerHTML = '';
+                document.getElementById('hintContainer').style.display = 'none';
+                // Обновить варианты
+                renderOptions(this.currentQuestion.options, document.getElementById('optionsContainer'));
+                document.querySelectorAll('.option-btn').forEach(btn => {
+                    btn.classList.remove('selected', 'correct', 'wrong', 'reveal-correct', 'disabled');
+                });
+                const prog = document.getElementById('examProgress');
+                prog.textContent = `Вопрос ${this.examIndex + 1} из ${this.examQuestions.length}`;
+                const label = document.getElementById('difficultyLabel');
+                label.style.display = 'block';
+                const diffMap = { 'easy': '🟢 Простая', 'medium': '🟡 Средняя', 'hard': '🔴 Сложная' };
+                label.textContent = 'Сложность: ' + diffMap[this.currentQuestion.difficulty || 'easy'];
+                document.getElementById('timeSpent').textContent = '';
+                this.questionStartTime = Date.now();
+                document.getElementById('taskCard').classList.remove('fade-in');
+                setTimeout(() => document.getElementById('taskCard').classList.add('fade-in'), 10);
+            } else {
+                this.newQuestion();
+            }
+        },
+
+        startExam() {
+            this.resetExamUI();
+            this.examQuestions = [];
+            for (let i = 0; i < 3; i++) {
+                let q = SystemGenerator.generate('easy');
+                q.difficulty = 'easy';
+                this.examQuestions.push(q);
+            }
+            for (let i = 0; i < 4; i++) {
+                let q = SystemGenerator.generate('medium');
+                q.difficulty = 'medium';
+                this.examQuestions.push(q);
+            }
+            for (let i = 0; i < 3; i++) {
+                let q = SystemGenerator.generate('hard');
+                q.difficulty = 'hard';
+                this.examQuestions.push(q);
+            }
+            this.examIndex = 0;
+            this.examCorrect = 0;
+            this.examStartTime = Date.now();
+            this.totalExamTime = 0;
+            this.examResults = this.examQuestions.map(q => ({
+                question: q,
+                userAnswer: null,
+                correct: null,
+                timeSpent: null
+            }));
+            document.getElementById('examProgress').style.display = 'block';
+            this.currentQuestion = this.examQuestions[0];
+            this.displayQuestion(this.currentQuestion);
+            this.selectedOptionIndex = null;
+            this.isAnswered = false;
+            document.getElementById('checkBtn').disabled = true;
+            document.getElementById('nextBtn').disabled = true;
+            document.getElementById('nextBtn').textContent = '➡️ Следующее';
+            document.getElementById('feedback').classList.remove('show', 'correct', 'wrong');
+            document.getElementById('feedbackText').textContent = '';
+            document.getElementById('stepsContainer').innerHTML = '';
+            document.getElementById('hintContainer').style.display = 'none';
+            renderOptions(this.currentQuestion.options, document.getElementById('optionsContainer'));
+            document.querySelectorAll('.option-btn').forEach(btn => {
+                btn.classList.remove('selected', 'correct', 'wrong', 'reveal-correct', 'disabled');
+            });
+            document.getElementById('examReport').classList.remove('show');
+            document.getElementById('taskCard').style.display = 'block';
+            const label = document.getElementById('difficultyLabel');
+            label.style.display = 'block';
+            const diffMap = { 'easy': '🟢 Простая', 'medium': '🟡 Средняя', 'hard': '🔴 Сложная' };
+            label.textContent = 'Сложность: ' + diffMap[this.currentQuestion.difficulty || 'easy'];
+            document.getElementById('timeSpent').textContent = '';
+            this.questionStartTime = Date.now();
+            document.getElementById('taskCard').classList.remove('fade-in');
+            setTimeout(() => document.getElementById('taskCard').classList.add('fade-in'), 10);
+        },
+
+        resetExamUI() {
+            document.getElementById('examProgress').style.display = 'none';
+            document.getElementById('examReport').classList.remove('show');
+            document.getElementById('taskCard').style.display = 'block';
+            document.getElementById('nextBtn').textContent = '➡️ Следующее';
+            document.getElementById('difficultyLabel').style.display = 'none';
+        },
+
+        finishExam() {
+            const totalTime = Math.round((Date.now() - this.examStartTime) / 1000);
+            Stats.finishSession(this.examCorrect, 10, totalTime);
+
+            const report = document.getElementById('examReport');
+            report.classList.add('show');
+            document.getElementById('examScore').textContent = `${this.examCorrect} / 10`;
+
+            let tableHtml = `<table>
+                <thead><tr><th>№</th><th>Система</th><th>Сложность</th><th>Ваш ответ</th><th>Правильный ответ</th><th>Статус</th><th>Время (с)</th><th>Решение</th></tr></thead>
+                <tbody>`;
+            this.examResults.forEach((res, idx) => {
+                const q = res.question;
+                const correct = q.correctAnswer;
+                const userAns = res.userAnswer;
+                let userStr = userAns ? ((userAns.leftBound!==null?'[':'(')+userAns.leftBound+'; '+userAns.rightBound+(userAns.rightInclusive?']':')')) : '—';
+                let correctStr = '';
+                if (correct.leftBound !== null && correct.rightBound !== null) {
+                    correctStr += (correct.leftInclusive ? '[' : '(') + correct.leftBound + '; ' + correct.rightBound + (correct.rightInclusive ? ']' : ')');
+                } else if (correct.leftBound !== null) {
+                    correctStr += (correct.leftInclusive ? '[' : '(') + correct.leftBound + '; +∞)';
+                } else if (correct.rightBound !== null) {
+                    correctStr += '(-∞; ' + correct.rightBound + (correct.rightInclusive ? ']' : ')');
+                } else {
+                    correctStr = '(-∞; +∞)';
+                }
+                const isCorrect = res.correct;
+                const statusClass = isCorrect ? 'status-correct' : 'status-wrong';
+                const statusText = isCorrect ? '✅ Верно' : '❌ Ошибка';
+                const diffLabel = (q.difficulty === 'easy') ? '<span class="badge-easy">Простая</span>' :
+                                  (q.difficulty === 'medium') ? '<span class="badge-medium">Средняя</span>' :
+                                  '<span class="badge-hard">Сложная</span>';
+                const time = res.timeSpent !== null ? res.timeSpent + ' с' : '—';
+                const steps = q.steps || ['Решение:'];
+                const stepsHtml = steps.map((s, i) => `${i+1}. ${s}`).join('<br>');
+                const toggleId = `sol-${idx}`;
+                tableHtml += `<tr>
+                    <td>${idx+1}</td>
+                    <td>${q.display}</td>
+                    <td>${diffLabel}</td>
+                    <td>${userStr}</td>
+                    <td>${correctStr}</td>
+                    <td class="${statusClass}">${statusText}</td>
+                    <td>${time}</td>
+                    <td>
+                        <button class="solution-toggle" onclick="App.toggleSolution('${toggleId}')">Показать решение</button>
+                        <div id="${toggleId}" class="solution-steps">${stepsHtml}</div>
+                    </td>
+                </tr>`;
+            });
+            tableHtml += `</tbody></table>`;
+            document.getElementById('examDetails').innerHTML = tableHtml;
+
+            const percent = Math.round((this.examCorrect / 10) * 100);
+            const errorTypes = {};
+            this.examResults.forEach((res) => {
+                if (!res.correct) {
+                    const type = res.question.type;
+                    errorTypes[type] = (errorTypes[type] || 0) + 1;
+                }
+            });
+            let recommendation = '';
+            if (percent === 100) recommendation = '🎉 Отлично! Вы готовы к экзамену!';
+            else if (percent >= 80) {
+                const topError = Object.keys(errorTypes).sort((a,b) => errorTypes[b]-errorTypes[a])[0];
+                if (topError) {
+                    recommendation = `👍 Хороший результат. Ошибки в типе "${topError}" — повторите этот раздел.`;
+                } else {
+                    recommendation = '👍 Хороший результат, продолжайте тренироваться.';
+                }
+            } else if (percent >= 60) {
+                const topError = Object.keys(errorTypes).sort((a,b) => errorTypes[b]-errorTypes[a])[0];
+                if (topError) {
+                    recommendation = `📖 Уделите внимание типу "${topError}". Разберите ошибки и повторите правила.`;
+                } else {
+                    recommendation = '📖 Повторите алгоритм решения систем неравенств.';
+                }
+            } else {
+                recommendation = '🔁 Рекомендуем пройти тренировочный режим и разобрать каждое задание.';
+            }
+            document.getElementById('examRecommendation').textContent = '💡 ' + recommendation;
+
+            document.getElementById('taskCard').style.display = 'none';
+            document.getElementById('examProgress').style.display = 'none';
+            document.getElementById('difficultyLabel').style.display = 'none';
+        },
+
+        toggleSolution(id) {
+            const el = document.getElementById(id);
+            if (el) {
+                el.classList.toggle('show');
+                const btn = el.previousElementSibling;
+                btn.textContent = el.classList.contains('show') ? 'Скрыть решение' : 'Показать решение';
+            }
+        },
+
+        showHint() {
+            const container = document.getElementById('hintContainer');
+            if (container.style.display === 'block') { container.style.display = 'none'; return; }
+            const q = this.currentQuestion;
+            container.textContent = '💡 ' + (q.hint || 'Решите каждое неравенство отдельно, затем найдите пересечение.');
+            container.style.display = 'block';
+        },
+
+        getReportText() {
+            const name = localStorage.getItem('studentName') || 'Ученик';
+            const date = new Date().toLocaleString();
+            let text = `Отчёт по экзамену (системы неравенств)\n`;
+            text += `Ученик: ${name}\n`;
+            text += `Дата: ${date}\n`;
+            text += `Результат: ${this.examCorrect} из 10 (${Math.round(this.examCorrect/10*100)}%)\n\n`;
+            text += `Подробности:\n`;
+            this.examResults.forEach((res, idx) => {
+                const q = res.question;
+                const correct = q.correctAnswer;
+                const userAns = res.userAnswer;
+                let userStr = userAns ? ((userAns.leftBound!==null?'[':'(')+userAns.leftBound+'; '+userAns.rightBound+(userAns.rightInclusive?']':')')) : '—';
+                let correctStr = '';
+                if (correct.leftBound !== null && correct.rightBound !== null) {
+                    correctStr += (correct.leftInclusive ? '[' : '(') + correct.leftBound + '; ' + correct.rightBound + (correct.rightInclusive ? ']' : ')');
+                } else if (correct.leftBound !== null) {
+                    correctStr += (correct.leftInclusive ? '[' : '(') + correct.leftBound + '; +∞)';
+                } else if (correct.rightBound !== null) {
+                    correctStr += '(-∞; ' + correct.rightBound + (correct.rightInclusive ? ']' : ')');
+                } else {
+                    correctStr = '(-∞; +∞)';
+                }
+                const status = res.correct ? '✅ Верно' : '❌ Ошибка';
+                const time = res.timeSpent !== null ? res.timeSpent + ' с' : '—';
+                const diff = (q.difficulty === 'easy') ? 'Простая' :
+                             (q.difficulty === 'medium') ? 'Средняя' : 'Сложная';
+                text += `${idx+1}. ${q.display}  |  Сложность: ${diff}  |  Ваш ответ: ${userStr}  |  Правильный: ${correctStr}  |  ${status}  |  Время: ${time}\n`;
+            });
+            text += `\nРекомендация: ${document.getElementById('examRecommendation').textContent.replace('💡 ', '')}`;
+            return text;
+        },
+
+        sendReport() {
+            const formId = 'xnpazrog';
+            const name = localStorage.getItem('studentName') || 'Ученик';
+            const reportText = this.getReportText();
+
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = `https://formspree.io/f/${formId}`;
+            form.target = '_blank';
+
+            const nameField = document.createElement('input');
+            nameField.type = 'hidden';
+            nameField.name = 'name';
+            nameField.value = name;
+
+            const reportField = document.createElement('input');
+            reportField.type = 'hidden';
+            reportField.name = 'report';
+            reportField.value = reportText;
+
+            form.appendChild(nameField);
+            form.appendChild(reportField);
+            document.body.appendChild(form);
+            form.submit();
+            document.body.removeChild(form);
+        },
+
+        copyReport() {
+            const text = this.getReportText();
+            navigator.clipboard.writeText(text).then(() => {
+                alert('Отчёт скопирован в буфер обмена!');
+            }).catch(() => {
+                alert('Не удалось скопировать. Попробуйте вручную.');
+            });
+        },
+
+        downloadReport() {
+            const text = this.getReportText();
+            const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = `отчёт_${localStorage.getItem('studentName') || 'ученик'}.txt`;
+            link.click();
+            URL.revokeObjectURL(link.href);
+        }
+    };
+
+    window.App = App;
+    document.addEventListener('DOMContentLoaded', () => App.init());
+</script>
+</body>
+</html>
